@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -5,6 +6,7 @@ import CashFlowConfiguration from './CashFlowConfiguration';
 import CashFlowPreview from './CashFlowPreview';
 import HectaresInput from './HectaresInput';
 import ResultsDisplay from './ResultsDisplay';
+import CurrencyInput from './CurrencyInput';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CashFlow {
@@ -108,6 +110,8 @@ const NPVCalculator = () => {
   const InputSection = () => (
     <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
       <CardContent className="p-6 space-y-6">
+        <CurrencyInput />
+
         <div className="space-y-2">
           <label htmlFor="discount-rate" className="text-sm font-medium text-gray-700">
             Discount Rate (%)
