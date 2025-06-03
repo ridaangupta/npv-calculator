@@ -1,8 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface CashFlow {
   id: string;
@@ -24,11 +27,33 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   cashFlows
 }) => {
   const { formatCurrency } = useCurrency();
+  const [viewMode, setViewMode] = useState<'table' | 'graph'>('table');
   
   const isPositiveNPV = npv > 0;
   const totalNPV = npv * totalHectares;
   const isPositiveTotalNPV = totalNPV > 0;
   const totalCashFlows = cashFlows.reduce((sum, flow) => sum + flow.amount, 0);
+
+  // Prepare chart data
+  const chartData = cashFlows.map((flow) => {
+    const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
+    return {
+      year: flow.year,
+      presentValue: presentValue,
+      futureValue: flow.amount,
+    };
+  });
+
+  const chartConfig = {
+    presentValue: {
+      label: "Present Value",
+      color: "#10b981", // emerald-500
+    },
+    futureValue: {
+      label: "Future Value",
+      color: "#3b82f6", // blue-500
+    },
+  };
 
   return (
     <div className="space-y-6">
@@ -117,27 +142,87 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {/* Cash Flow Breakdown */}
       <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-t-lg">
-          <CardTitle>Present Value Breakdown</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Present Value Breakdown</span>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'table' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('table')}
+                className="h-8"
+              >
+                <Table className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'graph' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('graph')}
+                className="h-8"
+              >
+                <ChartLine className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="space-y-3">
-            {cashFlows.map((flow) => {
-              const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
-              return (
-                <div key={flow.id} className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                  <span className="font-medium text-gray-700">Year {flow.year}</span>
-                  <div className="text-right">
-                    <div className="font-semibold text-green-600">
-                      +{formatCurrency(presentValue)}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      (Future: {formatCurrency(flow.amount)})
+          {viewMode === 'table' ? (
+            <div className="space-y-3">
+              {cashFlows.map((flow) => {
+                const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
+                return (
+                  <div key={flow.id} className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                    <span className="font-medium text-gray-700">Year {flow.year}</span>
+                    <div className="text-right">
+                      <div className="font-semibold text-green-600">
+                        +{formatCurrency(presentValue)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        (Future: {formatCurrency(flow.amount)})
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-80">
+              <ChartContainer config={chartConfig}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="year" 
+                    label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                  />
+                  <YAxis 
+                    label={{ value: 'Value', angle: -90, position: 'insideLeft' }}
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent 
+                      formatter={(value, name) => [
+                        formatCurrency(Number(value)), 
+                        name === 'presentValue' ? 'Present Value' : 'Future Value'
+                      ]}
+                    />} 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="presentValue" 
+                    stroke="var(--color-presentValue)" 
+                    strokeWidth={3}
+                    dot={{ fill: "var(--color-presentValue)", strokeWidth: 2, r: 4 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="futureValue" 
+                    stroke="var(--color-futureValue)" 
+                    strokeWidth={3}
+                    dot={{ fill: "var(--color-futureValue)", strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ChartContainer>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
