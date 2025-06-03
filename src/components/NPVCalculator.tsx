@@ -50,6 +50,7 @@ const NPVCalculator = () => {
   };
 
   // Generate cash flows with spread increases instead of discrete jumps
+  // Convert from per m² to per hectare by multiplying by 10,000
   useEffect(() => {
     const generatedFlows: CashFlow[] = [];
     const numericTimePeriod = getNumericTimePeriod();
@@ -58,20 +59,23 @@ const NPVCalculator = () => {
     
     // Calculate equivalent annual increase by spreading over frequency period
     const annualIncreaseValue = numericIncreaseValue / increaseFrequency;
-    let currentCashFlow = numericBaseCashFlow;
+    let currentCashFlowPerM2 = numericBaseCashFlow;
     
     for (let year = 1; year <= numericTimePeriod; year++) {
       // Apply the equivalent annual increase every year (except year 1)
       if (year > 1) {
         if (increaseType === 'amount') {
-          currentCashFlow += annualIncreaseValue;
+          currentCashFlowPerM2 += annualIncreaseValue;
         } else if (increaseType === 'percent') {
-          currentCashFlow = currentCashFlow * (1 + annualIncreaseValue / 100);
+          currentCashFlowPerM2 = currentCashFlowPerM2 * (1 + annualIncreaseValue / 100);
         }
       }
       
+      // Convert from per m² to per hectare (multiply by 10,000)
+      const currentCashFlowPerHectare = currentCashFlowPerM2 * 10000;
+      
       // Round to 2 decimal places
-      const roundedCashFlow = Math.round(currentCashFlow * 100) / 100;
+      const roundedCashFlow = Math.round(currentCashFlowPerHectare * 100) / 100;
       
       generatedFlows.push({
         id: year.toString(),

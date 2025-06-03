@@ -37,17 +37,20 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
       
       <div className="space-y-2">
         <Label htmlFor="base-cash-flow" className="text-sm font-medium text-gray-600">
-          Initial Lease Rent ($)
+          Initial Lease Rent ($/m² per year)
         </Label>
         <Input
           id="base-cash-flow"
           type="number"
           value={baseCashFlow}
           onChange={(e) => onBaseCashFlowChange(e.target.value === '' ? '' : e.target.value)}
-          placeholder="Enter initial lease rent"
+          placeholder="Enter initial lease rent per square meter"
           step="0.01"
           className="text-lg"
         />
+        <p className="text-xs text-gray-500">
+          This will be automatically converted to hectares (1 hectare = 10,000 m²)
+        </p>
       </div>
 
       <div className="space-y-3">
@@ -61,11 +64,11 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="amount" id="amount" />
-            <Label htmlFor="amount" className="text-sm">Fixed Amount Increase</Label>
+            <Label htmlFor="amount" className="text-sm">Fixed Amount Increase ($/m² per year)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="percent" id="percent" />
-            <Label htmlFor="percent" className="text-sm">Percentage Increase</Label>
+            <Label htmlFor="percent" className="text-sm">Percentage Increase (%)</Label>
           </div>
         </RadioGroup>
       </div>
@@ -73,7 +76,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
       <div className="space-y-2">
         <Label htmlFor="increase-value" className="text-sm font-medium text-gray-600">
           {increaseType === 'amount' 
-            ? `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} ($)` 
+            ? `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} ($/m² per year)` 
             : `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} (%)`}
         </Label>
         <Input
@@ -82,14 +85,14 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           value={increaseValue}
           onChange={(e) => onIncreaseValueChange(e.target.value === '' ? '' : e.target.value)}
           placeholder={increaseType === 'amount' 
-            ? `Enter total $ increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
+            ? `Enter total $/m² increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
             : `Enter total % increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`}
           step="0.01"
           className="text-lg"
         />
         <p className="text-xs text-gray-500">
           This will be spread evenly over each year ({increaseType === 'amount' 
-            ? `$${(Number(increaseValue) / increaseFrequency || 0).toFixed(2)} per year` 
+            ? `$${(Number(increaseValue) / increaseFrequency || 0).toFixed(4)}/m² per year` 
             : `${(Number(increaseValue) / increaseFrequency || 0).toFixed(2)}% per year`})
         </p>
       </div>
