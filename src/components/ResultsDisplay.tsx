@@ -12,7 +12,6 @@ interface CashFlow {
 interface ResultsDisplayProps {
   npv: number;
   totalHectares: number;
-  initialInvestment: number;
   discountRate: number;
   cashFlows: CashFlow[];
 }
@@ -20,7 +19,6 @@ interface ResultsDisplayProps {
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   npv,
   totalHectares,
-  initialInvestment,
   discountRate,
   cashFlows
 }) => {
@@ -28,7 +26,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const totalNPV = npv * totalHectares;
   const isPositiveTotalNPV = totalNPV > 0;
   const totalCashFlows = cashFlows.reduce((sum, flow) => sum + flow.amount, 0);
-  const roiPercentage = initialInvestment > 0 ? ((totalCashFlows - initialInvestment) / initialInvestment) * 100 : 0;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -93,18 +90,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-t-lg">
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
-            Investment Summary
+            Cash Flow Summary
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Initial Investment</div>
-              <div className="text-xl font-semibold text-blue-700">
-                {formatCurrency(initialInvestment)}
-              </div>
-            </div>
-            
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <div className="text-sm text-gray-600 mb-1">Discount Rate</div>
               <div className="text-xl font-semibold text-purple-700 flex items-center justify-center gap-1">
@@ -120,11 +110,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               </div>
             </div>
             
-            <div className="text-center p-4 bg-indigo-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Simple ROI</div>
-              <div className="text-xl font-semibold text-indigo-700 flex items-center justify-center gap-1">
-                {roiPercentage.toFixed(1)}
-                <Percent className="w-4 h-4" />
+            <div className="text-center p-4 bg-indigo-50 rounded-lg col-span-2">
+              <div className="text-sm text-gray-600 mb-1">Years Analyzed</div>
+              <div className="text-xl font-semibold text-indigo-700">
+                {cashFlows.length} Year{cashFlows.length !== 1 ? 's' : ''}
               </div>
             </div>
           </div>
@@ -138,13 +127,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-              <span className="font-medium text-gray-700">Year 0 (Initial Investment)</span>
-              <span className="font-semibold text-red-600">
-                -{formatCurrency(initialInvestment)}
-              </span>
-            </div>
-            
             {cashFlows.map((flow) => {
               const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
               return (
