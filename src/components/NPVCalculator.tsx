@@ -19,11 +19,22 @@ const NPVCalculator = () => {
   const [increaseValue, setIncreaseValue] = useState<number>(0);
   const [increaseType, setIncreaseType] = useState<'amount' | 'percent' | 'function'>('amount');
   const [increaseFrequency, setIncreaseFrequency] = useState<number>(1);
-  const [timePeriod, setTimePeriod] = useState<number>(5);
-  const [totalHectares, setTotalHectares] = useState<number>(1);
+  const [timePeriod, setTimePeriod] = useState<number | string>(5);
+  const [totalHectares, setTotalHectares] = useState<number | string>(1);
   const [cashFlowFunction, setCashFlowFunction] = useState<string>('');
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [npv, setNpv] = useState<number>(0);
+
+  // Helper function to get numeric value with fallback
+  const getNumericTimePeriod = () => {
+    const num = Number(timePeriod);
+    return isNaN(num) || num <= 0 ? 1 : num;
+  };
+
+  const getNumericTotalHectares = () => {
+    const num = Number(totalHectares);
+    return isNaN(num) || num <= 0 ? 1 : num;
+  };
 
   // Evaluate mathematical function safely
   const evaluateFunction = (functionStr: string, t: number): number => {
@@ -53,10 +64,11 @@ const NPVCalculator = () => {
   // Generate cash flows based on base amount, increase value, type, and frequency
   useEffect(() => {
     const generatedFlows: CashFlow[] = [];
+    const numericTimePeriod = getNumericTimePeriod();
     
     if (increaseType === 'function' && cashFlowFunction.trim()) {
       // Use function-based calculation
-      for (let year = 1; year <= timePeriod; year++) {
+      for (let year = 1; year <= numericTimePeriod; year++) {
         const amount = evaluateFunction(cashFlowFunction, year);
         generatedFlows.push({
           id: year.toString(),
@@ -68,7 +80,7 @@ const NPVCalculator = () => {
       // Use existing logic for amount and percent increases
       let currentCashFlow = baseCashFlow;
       
-      for (let year = 1; year <= timePeriod; year++) {
+      for (let year = 1; year <= numericTimePeriod; year++) {
         // Check if it's time to apply an increase
         if (year > 1 && (year - 1) % increaseFrequency === 0) {
           if (increaseType === 'amount') {
@@ -146,7 +158,7 @@ const NPVCalculator = () => {
         {/* Results Section */}
         <ResultsDisplay
           npv={npv}
-          totalHectares={totalHectares}
+          totalHectares={getNumericTotalHectares()}
           initialInvestment={initialInvestment}
           discountRate={discountRate}
           cashFlows={cashFlows}

@@ -10,13 +10,13 @@ interface CashFlowConfigurationProps {
   increaseValue: number;
   increaseType: 'amount' | 'percent' | 'function';
   increaseFrequency: number;
-  timePeriod: number;
+  timePeriod: number | string;
   cashFlowFunction: string;
   onBaseCashFlowChange: (value: number) => void;
   onIncreaseValueChange: (value: number) => void;
   onIncreaseTypeChange: (value: 'amount' | 'percent' | 'function') => void;
   onIncreaseFrequencyChange: (value: number) => void;
-  onTimePeriodChange: (value: number) => void;
+  onTimePeriodChange: (value: number | string) => void;
   onCashFlowFunctionChange: (value: string) => void;
 }
 
@@ -157,10 +157,10 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           id="time-period"
           type="number"
           value={timePeriod}
-          onChange={(e) => onTimePeriodChange(Math.max(1, Number(e.target.value) || 1))}
+          onChange={(e) => onTimePeriodChange(e.target.value === '' ? '' : Number(e.target.value))}
           placeholder="Enter time period"
-          min="1"
-          max="50"
+          min="0.1"
+          step="0.1"
           className="text-lg"
         />
       </div>

@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface HectaresInputProps {
-  totalHectares: number;
-  onTotalHectaresChange: (value: number) => void;
+  totalHectares: number | string;
+  onTotalHectaresChange: (value: number | string) => void;
 }
 
 const HectaresInput: React.FC<HectaresInputProps> = ({
@@ -21,7 +21,7 @@ const HectaresInput: React.FC<HectaresInputProps> = ({
         id="total-hectares"
         type="number"
         value={totalHectares}
-        onChange={(e) => onTotalHectaresChange(Number(e.target.value) || 1)}
+        onChange={(e) => onTotalHectaresChange(e.target.value === '' ? '' : Number(e.target.value))}
         placeholder="Enter total hectares"
         min="0.1"
         step="0.1"
