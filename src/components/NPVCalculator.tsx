@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CashFlowConfiguration from './CashFlowConfiguration';
 import CashFlowPreview from './CashFlowPreview';
 import HectaresInput from './HectaresInput';
 import ResultsDisplay from './ResultsDisplay';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CashFlow {
   id: string;
@@ -13,6 +14,7 @@ interface CashFlow {
 }
 
 const NPVCalculator = () => {
+  const isMobile = useIsMobile();
   const [discountRate, setDiscountRate] = useState<number | string>(10);
   const [baseCashFlow, setBaseCashFlow] = useState<number | string>(0);
   const [increaseValue, setIncreaseValue] = useState<number | string>(0);
@@ -103,49 +105,84 @@ const NPVCalculator = () => {
     calculateNPV();
   }, [discountRate, cashFlows]);
 
+  const InputSection = () => (
+    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+      <CardContent className="p-6 space-y-6">
+        <div className="space-y-2">
+          <label htmlFor="discount-rate" className="text-sm font-medium text-gray-700">
+            Discount Rate (%)
+          </label>
+          <input
+            id="discount-rate"
+            type="number"
+            value={discountRate}
+            onChange={(e) => setDiscountRate(e.target.value === '' ? '' : e.target.value)}
+            placeholder="Enter discount rate"
+            step="0.01"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+          />
+        </div>
+
+        <CashFlowConfiguration
+          baseCashFlow={baseCashFlow}
+          increaseValue={increaseValue}
+          increaseType={increaseType}
+          increaseFrequency={increaseFrequency}
+          timePeriod={timePeriod}
+          onBaseCashFlowChange={setBaseCashFlow}
+          onIncreaseValueChange={setIncreaseValue}
+          onIncreaseTypeChange={setIncreaseType}
+          onIncreaseFrequencyChange={setIncreaseFrequency}
+          onTimePeriodChange={setTimePeriod}
+        />
+
+        <CashFlowPreview cashFlows={cashFlows} />
+
+        <HectaresInput
+          totalHectares={totalHectares}
+          onTotalHectaresChange={setTotalHectares}
+        />
+      </CardContent>
+    </Card>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        <Tabs defaultValue="input" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="input" className="text-sm font-medium">
+              Input
+            </TabsTrigger>
+            <TabsTrigger value="output" className="text-sm font-medium">
+              Results
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="input" className="space-y-6">
+            <InputSection />
+          </TabsContent>
+          
+          <TabsContent value="output" className="space-y-6">
+            <ResultsDisplay
+              npv={npv}
+              totalHectares={getNumericTotalHectares()}
+              discountRate={getNumericDiscountRate()}
+              cashFlows={cashFlows}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  // Desktop layout remains unchanged
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="grid md:grid-cols-2 gap-8">
         {/* Input Section */}
         <div className="space-y-6">
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6 space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="discount-rate" className="text-sm font-medium text-gray-700">
-                  Discount Rate (%)
-                </label>
-                <input
-                  id="discount-rate"
-                  type="number"
-                  value={discountRate}
-                  onChange={(e) => setDiscountRate(e.target.value === '' ? '' : e.target.value)}
-                  placeholder="Enter discount rate"
-                  step="0.01"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                />
-              </div>
-
-              <CashFlowConfiguration
-                baseCashFlow={baseCashFlow}
-                increaseValue={increaseValue}
-                increaseType={increaseType}
-                increaseFrequency={increaseFrequency}
-                timePeriod={timePeriod}
-                onBaseCashFlowChange={setBaseCashFlow}
-                onIncreaseValueChange={setIncreaseValue}
-                onIncreaseTypeChange={setIncreaseType}
-                onIncreaseFrequencyChange={setIncreaseFrequency}
-                onTimePeriodChange={setTimePeriod}
-              />
-
-              <CashFlowPreview cashFlows={cashFlows} />
-
-              <HectaresInput
-                totalHectares={totalHectares}
-                onTotalHectaresChange={setTotalHectares}
-              />
-            </CardContent>
-          </Card>
+          <InputSection />
         </div>
 
         {/* Results Section */}
