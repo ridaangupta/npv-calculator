@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
@@ -183,24 +184,25 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <CardHeader className="bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-t-lg">
           <CardTitle className="flex items-center justify-between">
             <span>Present Value Breakdown</span>
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === 'table' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-                className="h-8"
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={(value) => value && setViewMode(value as 'table' | 'graph')}
+              className="bg-white/10 p-1 rounded-lg border border-white/20"
+            >
+              <ToggleGroupItem 
+                value="table" 
+                className="data-[state=on]:bg-white data-[state=on]:text-gray-700 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2"
               >
                 <Table className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'graph' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('graph')}
-                className="h-8"
+              </ToggleGroupItem>
+              <ToggleGroupItem 
+                value="graph" 
+                className="data-[state=on]:bg-white data-[state=on]:text-gray-700 text-white/80 hover:text-white hover:bg-white/10 px-3 py-2"
               >
                 <ChartLine className="w-4 h-4" />
-              </Button>
-            </div>
+              </ToggleGroupItem>
+            </ToggleGroup>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
