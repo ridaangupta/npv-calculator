@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface CashFlow {
@@ -191,11 +191,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="year" 
-                    label={{ value: 'Year', position: 'insideBottom', offset: -5 }}
+                    tick={false}
+                    axisLine={false}
                   />
                   <YAxis 
-                    label={{ value: 'Value', angle: -90, position: 'insideLeft' }}
-                    tickFormatter={(value) => formatCurrency(value)}
+                    tick={false}
+                    axisLine={false}
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent 
@@ -219,6 +220,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     strokeWidth={3}
                     dot={{ fill: "var(--color-futureValue)", strokeWidth: 2, r: 4 }}
                   />
+                  <ChartLegend content={<ChartLegendContent />} />
                 </LineChart>
               </ChartContainer>
             </div>
