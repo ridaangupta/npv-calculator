@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface CashFlow {
   id: string;
@@ -13,17 +14,19 @@ interface CashFlowPreviewProps {
 }
 
 const CashFlowPreview: React.FC<CashFlowPreviewProps> = ({ cashFlows }) => {
+  const { formatCurrency, selectedCurrency } = useCurrency();
+
   return (
     <div className="space-y-3">
       <Label className="text-sm font-medium text-gray-700">
-        Generated Cash Flow Preview ($/hectare per year)
+        Generated Cash Flow Preview ({selectedCurrency.symbol}/hectare per year)
       </Label>
       <div className="max-h-32 overflow-y-auto space-y-2 bg-gray-50 p-3 rounded-lg">
         {cashFlows.map((flow) => (
           <div key={flow.id} className="flex justify-between text-sm">
             <span className="text-gray-600">Year {flow.year}:</span>
             <span className="font-medium">
-              ${flow.amount.toLocaleString()}/ha
+              {formatCurrency(flow.amount)}/ha
             </span>
           </div>
         ))}

@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface CashFlowConfigurationProps {
   baseCashFlow: number | string;
@@ -29,6 +29,54 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
   onIncreaseFrequencyChange,
   onTimePeriodChange
 }) => {
+  const { selectedCurrency, convertFromUSD, convertToUSD } = useCurrency();
+
+  const handleBaseCashFlowChange = (value: string) => {
+    if (value === '') {
+      onBaseCashFlowChange('');
+      return;
+    }
+    // Convert from selected currency to USD for storage
+    const usdValue = convertToUSD(Number(value));
+    onBaseCashFlowChange(usdValue);
+  };
+
+  const handleIncreaseValueChange = (value: string) => {
+    if (value === '') {
+      onIncreaseValueChange('');
+      return;
+    }
+    if (increaseType === 'amount') {
+      // Convert from selected currency to USD for storage
+      const usdValue = convertToUSD(Number(value));
+      onIncreaseValueChange(usdValue);
+    } else {
+      // Percentage remains the same regardless of currency
+      onIncreaseValueChange(value);
+    }
+  };
+
+  const getDisplayBaseCashFlow = () => {
+    if (baseCashFlow === '' || baseCashFlow === 0) return '';
+    return convertFromUSD(Number(baseCashFlow)).toFixed(selectedCurrency.decimalDigits);
+  };
+
+  const getDisplayIncreaseValue = () => {
+    if (increaseValue === '' || increaseValue === 0) return '';
+    if (increaseType === 'percent') return increaseValue.toString();
+    return convertFromUSD(Number(increaseValue)).toFixed(selectedCurrency.decimalDigits);
+  };
+
+  const getDisplayAnnualIncrease = () => {
+    if (increaseType === 'amount') {
+      const usdAnnualIncrease = Number(increaseValue) / increaseFrequency || 0;
+      const displayAnnualIncrease = convertFromUSD(usdAnnualIncrease);
+      return `${selectedCurrency.symbol}${displayAnnualIncrease.toFixed(selectedCurrency.decimalDigits)}/m² per year`;
+    } else {
+      return `${(Number(increaseValue) / increaseFrequency || 0).toFixed(2)}% per year`;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Label className="text-sm font-medium text-gray-700">
@@ -37,17 +85,22 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
       
       <div className="space-y-2">
         <Label htmlFor="base-cash-flow" className="text-sm font-medium text-gray-600">
-          Initial Lease Rent ($/m² per year)
+          Initial Lease Rent ({selectedCurrency.symbol}/m² per year)
         </Label>
-        <Input
-          id="base-cash-flow"
-          type="number"
-          value={baseCashFlow}
-          onChange={(e) => onBaseCashFlowChange(e.target.value === '' ? '' : e.target.value)}
-          placeholder="Enter initial lease rent per square meter"
-          step="0.01"
-          className="text-lg"
-        />
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+            {selectedCurrency.symbol}
+          </span>
+          <Input
+            id="base-cash-flow"
+            type="number"
+            value={getDisplayBaseCashFlow()}
+            onChange={(e) => handleBaseCashFlowChange(e.target.value)}
+            placeholder={`Enter initial lease rent per square meter in ${selectedCurrency.code}`}
+            step="0.01"
+            className="text-lg pl-8"
+          />
+        </div>
         <p className="text-xs text-gray-500">
           This will be automatically converted to hectares (1 hectare = 10,000 m²)
         </p>
@@ -64,7 +117,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="amount" id="amount" />
-            <Label htmlFor="amount" className="text-sm">Fixed Amount Increase ($/m² per year)</Label>
+            <Label htmlFor="amount" className="text-sm">Fixed Amount Increase ({selectedCurrency.symbol}/m² per year)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="percent" id="percent" />
@@ -76,24 +129,29 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
       <div className="space-y-2">
         <Label htmlFor="increase-value" className="text-sm font-medium text-gray-600">
           {increaseType === 'amount' 
-            ? `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} ($/m² per year)` 
+            ? `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} (${selectedCurrency.symbol}/m² per year)` 
             : `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} (%)`}
         </Label>
-        <Input
-          id="increase-value"
-          type="number"
-          value={increaseValue}
-          onChange={(e) => onIncreaseValueChange(e.target.value === '' ? '' : e.target.value)}
-          placeholder={increaseType === 'amount' 
-            ? `Enter total $/m² increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
-            : `Enter total % increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`}
-          step="0.01"
-          className="text-lg"
-        />
+        <div className="relative">
+          {increaseType === 'amount' && (
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              {selectedCurrency.symbol}
+            </span>
+          )}
+          <Input
+            id="increase-value"
+            type="number"
+            value={getDisplayIncreaseValue()}
+            onChange={(e) => handleIncreaseValueChange(e.target.value)}
+            placeholder={increaseType === 'amount' 
+              ? `Enter total ${selectedCurrency.symbol}/m² increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
+              : `Enter total % increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`}
+            step="0.01"
+            className={`text-lg ${increaseType === 'amount' ? 'pl-8' : ''}`}
+          />
+        </div>
         <p className="text-xs text-gray-500">
-          This will be spread evenly over each year ({increaseType === 'amount' 
-            ? `$${(Number(increaseValue) / increaseFrequency || 0).toFixed(4)}/m² per year` 
-            : `${(Number(increaseValue) / increaseFrequency || 0).toFixed(2)}% per year`})
+          This will be spread evenly over each year ({getDisplayAnnualIncrease()})
         </p>
       </div>
 

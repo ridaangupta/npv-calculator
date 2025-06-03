@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface CashFlow {
   id: string;
@@ -22,19 +23,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   discountRate,
   cashFlows
 }) => {
+  const { formatCurrency } = useCurrency();
+  
   const isPositiveNPV = npv > 0;
   const totalNPV = npv * totalHectares;
   const isPositiveTotalNPV = totalNPV > 0;
   const totalCashFlows = cashFlows.reduce((sum, flow) => sum + flow.amount, 0);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
 
   return (
     <div className="space-y-6">
