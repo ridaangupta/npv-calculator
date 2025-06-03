@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Percent } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin } from 'lucide-react';
 
 interface CashFlow {
   id: string;
@@ -11,6 +11,7 @@ interface CashFlow {
 
 interface ResultsDisplayProps {
   npv: number;
+  totalHectares: number;
   initialInvestment: number;
   discountRate: number;
   cashFlows: CashFlow[];
@@ -18,11 +19,14 @@ interface ResultsDisplayProps {
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   npv,
+  totalHectares,
   initialInvestment,
   discountRate,
   cashFlows
 }) => {
   const isPositiveNPV = npv > 0;
+  const totalNPV = npv * totalHectares;
+  const isPositiveTotalNPV = totalNPV > 0;
   const totalCashFlows = cashFlows.reduce((sum, flow) => sum + flow.amount, 0);
   const roiPercentage = initialInvestment > 0 ? ((totalCashFlows - initialInvestment) / initialInvestment) * 100 : 0;
 
@@ -37,7 +41,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Main NPV Result */}
+      {/* Per Hectare NPV Result */}
       <Card className={`shadow-lg border-0 ${isPositiveNPV ? 'bg-gradient-to-br from-green-50 to-emerald-50' : 'bg-gradient-to-br from-red-50 to-rose-50'}`}>
         <CardHeader className={`${isPositiveNPV ? 'bg-gradient-to-r from-green-600 to-emerald-600' : 'bg-gradient-to-r from-red-600 to-rose-600'} text-white rounded-t-lg`}>
           <CardTitle className="flex items-center gap-2">
@@ -46,7 +50,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             ) : (
               <TrendingDown className="w-5 h-5" />
             )}
-            Net Present Value
+            NPV Per Hectare
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -55,13 +59,30 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               {formatCurrency(npv)}
             </div>
             <div className={`text-lg font-medium ${isPositiveNPV ? 'text-green-600' : 'text-red-600'}`}>
-              {isPositiveNPV ? 'Profitable Investment' : 'Unprofitable Investment'}
+              {isPositiveNPV ? 'Profitable Per Hectare' : 'Unprofitable Per Hectare'}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Total Project NPV */}
+      <Card className={`shadow-lg border-0 ${isPositiveTotalNPV ? 'bg-gradient-to-br from-blue-50 to-indigo-50' : 'bg-gradient-to-br from-orange-50 to-red-50'}`}>
+        <CardHeader className={`${isPositiveTotalNPV ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-orange-600 to-red-600'} text-white rounded-t-lg`}>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Total Project Value
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <div className={`text-5xl font-bold mb-2 ${isPositiveTotalNPV ? 'text-blue-700' : 'text-orange-700'}`}>
+              {formatCurrency(totalNPV)}
+            </div>
+            <div className={`text-lg font-medium ${isPositiveTotalNPV ? 'text-blue-600' : 'text-orange-600'}`}>
+              {totalHectares} Hectare{totalHectares !== 1 ? 's' : ''} Total
             </div>
             <div className="text-sm text-gray-600 mt-2">
-              {isPositiveNPV 
-                ? 'This investment is expected to generate positive returns.'
-                : 'This investment is expected to generate negative returns.'
-              }
+              {formatCurrency(npv)} × {totalHectares} hectare{totalHectares !== 1 ? 's' : ''}
             </div>
           </div>
         </CardContent>
