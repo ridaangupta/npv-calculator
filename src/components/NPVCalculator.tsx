@@ -1,11 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Minus, Calculator } from 'lucide-react';
-import CashFlowInput from './CashFlowInput';
+import { Calculator } from 'lucide-react';
 import ResultsDisplay from './ResultsDisplay';
 
 interface CashFlow {
@@ -17,38 +15,25 @@ interface CashFlow {
 const NPVCalculator = () => {
   const [initialInvestment, setInitialInvestment] = useState<number>(0);
   const [discountRate, setDiscountRate] = useState<number>(10);
-  const [cashFlows, setCashFlows] = useState<CashFlow[]>([
-    { id: '1', year: 1, amount: 0 },
-    { id: '2', year: 2, amount: 0 },
-    { id: '3', year: 3, amount: 0 }
-  ]);
+  const [baseCashFlow, setBaseCashFlow] = useState<number>(0);
+  const [annualIncrease, setAnnualIncrease] = useState<number>(0);
+  const [timePeriod, setTimePeriod] = useState<number>(5);
+  const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [npv, setNpv] = useState<number>(0);
 
-  const addCashFlow = () => {
-    const newId = (cashFlows.length + 1).toString();
-    const newYear = cashFlows.length + 1;
-    setCashFlows([...cashFlows, { id: newId, year: newYear, amount: 0 }]);
-  };
-
-  const removeCashFlow = (id: string) => {
-    if (cashFlows.length > 1) {
-      const updatedFlows = cashFlows.filter(flow => flow.id !== id);
-      // Renumber the years
-      const renumberedFlows = updatedFlows.map((flow, index) => ({
-        ...flow,
-        year: index + 1
-      }));
-      setCashFlows(renumberedFlows);
+  // Generate cash flows based on base amount and annual increase
+  useEffect(() => {
+    const generatedFlows: CashFlow[] = [];
+    for (let year = 1; year <= timePeriod; year++) {
+      const amount = baseCashFlow + (annualIncrease * (year - 1));
+      generatedFlows.push({
+        id: year.toString(),
+        year: year,
+        amount: Math.max(0, amount) // Ensure non-negative cash flows
+      });
     }
-  };
-
-  const updateCashFlow = (id: string, amount: number) => {
-    setCashFlows(flows => 
-      flows.map(flow => 
-        flow.id === id ? { ...flow, amount } : flow
-      )
-    );
-  };
+    setCashFlows(generatedFlows);
+  }, [baseCashFlow, annualIncrease, timePeriod]);
 
   const calculateNPV = () => {
     let npvValue = -initialInvestment;
@@ -107,41 +92,68 @@ const NPVCalculator = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-gray-700">
-                  Cash Flows by Year
+              <Label className="text-sm font-medium text-gray-700">
+                Cash Flow Parameters
+              </Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="base-cash-flow" className="text-sm font-medium text-gray-600">
+                  Base Cash Flow - Year 1 ($)
                 </Label>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={addCashFlow}
-                    size="sm"
-                    variant="outline"
-                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                  {cashFlows.length > 1 && (
-                    <Button
-                      onClick={() => removeCashFlow(cashFlows[cashFlows.length - 1].id)}
-                      size="sm"
-                      variant="outline"
-                      className="text-red-600 border-red-600 hover:bg-red-50"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
+                <Input
+                  id="base-cash-flow"
+                  type="number"
+                  value={baseCashFlow || ''}
+                  onChange={(e) => setBaseCashFlow(Number(e.target.value) || 0)}
+                  placeholder="Enter base cash flow"
+                  className="text-lg"
+                />
               </div>
 
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-2">
+                <Label htmlFor="annual-increase" className="text-sm font-medium text-gray-600">
+                  Annual Increase ($)
+                </Label>
+                <Input
+                  id="annual-increase"
+                  type="number"
+                  value={annualIncrease || ''}
+                  onChange={(e) => setAnnualIncrease(Number(e.target.value) || 0)}
+                  placeholder="Enter annual increase"
+                  className="text-lg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="time-period" className="text-sm font-medium text-gray-600">
+                  Time Period (Years)
+                </Label>
+                <Input
+                  id="time-period"
+                  type="number"
+                  value={timePeriod || ''}
+                  onChange={(e) => setTimePeriod(Math.max(1, Number(e.target.value) || 1))}
+                  placeholder="Enter time period"
+                  min="1"
+                  max="50"
+                  className="text-lg"
+                />
+              </div>
+            </div>
+
+            {/* Cash Flow Preview */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">
+                Generated Cash Flow Preview
+              </Label>
+              <div className="max-h-32 overflow-y-auto space-y-2 bg-gray-50 p-3 rounded-lg">
                 {cashFlows.map((flow) => (
-                  <CashFlowInput
-                    key={flow.id}
-                    cashFlow={flow}
-                    onUpdate={updateCashFlow}
-                    onRemove={removeCashFlow}
-                    canRemove={cashFlows.length > 1}
-                  />
+                  <div key={flow.id} className="flex justify-between text-sm">
+                    <span className="text-gray-600">Year {flow.year}:</span>
+                    <span className="font-medium">
+                      ${flow.amount.toLocaleString()}
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>
