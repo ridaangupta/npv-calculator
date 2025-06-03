@@ -13,9 +13,9 @@ interface CashFlow {
 }
 
 const NPVCalculator = () => {
-  const [discountRate, setDiscountRate] = useState<number>(10);
-  const [baseCashFlow, setBaseCashFlow] = useState<number>(0);
-  const [increaseValue, setIncreaseValue] = useState<number>(0);
+  const [discountRate, setDiscountRate] = useState<number | string>(10);
+  const [baseCashFlow, setBaseCashFlow] = useState<number | string>(0);
+  const [increaseValue, setIncreaseValue] = useState<number | string>(0);
   const [increaseType, setIncreaseType] = useState<'amount' | 'percent'>('amount');
   const [increaseFrequency, setIncreaseFrequency] = useState<number>(1);
   const [timePeriod, setTimePeriod] = useState<number | string>(5);
@@ -23,7 +23,22 @@ const NPVCalculator = () => {
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [npv, setNpv] = useState<number>(0);
 
-  // Helper function to get numeric value with fallback
+  // Helper functions to get numeric values with fallbacks
+  const getNumericDiscountRate = () => {
+    const num = Number(discountRate);
+    return isNaN(num) || num < 0 ? 0 : num;
+  };
+
+  const getNumericBaseCashFlow = () => {
+    const num = Number(baseCashFlow);
+    return isNaN(num) || num < 0 ? 0 : num;
+  };
+
+  const getNumericIncreaseValue = () => {
+    const num = Number(increaseValue);
+    return isNaN(num) || num < 0 ? 0 : num;
+  };
+
   const getNumericTimePeriod = () => {
     const num = Number(timePeriod);
     return isNaN(num) || num <= 0 ? 1 : num;
@@ -38,15 +53,17 @@ const NPVCalculator = () => {
   useEffect(() => {
     const generatedFlows: CashFlow[] = [];
     const numericTimePeriod = getNumericTimePeriod();
-    let currentCashFlow = baseCashFlow;
+    const numericBaseCashFlow = getNumericBaseCashFlow();
+    const numericIncreaseValue = getNumericIncreaseValue();
+    let currentCashFlow = numericBaseCashFlow;
     
     for (let year = 1; year <= numericTimePeriod; year++) {
       // Check if it's time to apply an increase
       if (year > 1 && (year - 1) % increaseFrequency === 0) {
         if (increaseType === 'amount') {
-          currentCashFlow += increaseValue;
+          currentCashFlow += numericIncreaseValue;
         } else if (increaseType === 'percent') {
-          currentCashFlow = currentCashFlow * (1 + increaseValue / 100);
+          currentCashFlow = currentCashFlow * (1 + numericIncreaseValue / 100);
         }
       }
       
@@ -62,9 +79,10 @@ const NPVCalculator = () => {
 
   const calculateNPV = () => {
     let npvValue = 0;
+    const numericDiscountRate = getNumericDiscountRate();
     
     cashFlows.forEach(flow => {
-      const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
+      const presentValue = flow.amount / Math.pow(1 + numericDiscountRate / 100, flow.year);
       npvValue += presentValue;
     });
     
@@ -89,8 +107,8 @@ const NPVCalculator = () => {
                 <input
                   id="discount-rate"
                   type="number"
-                  value={discountRate || ''}
-                  onChange={(e) => setDiscountRate(Number(e.target.value) || 0)}
+                  value={discountRate}
+                  onChange={(e) => setDiscountRate(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="Enter discount rate"
                   step="0.1"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
@@ -124,7 +142,7 @@ const NPVCalculator = () => {
         <ResultsDisplay
           npv={npv}
           totalHectares={getNumericTotalHectares()}
-          discountRate={discountRate}
+          discountRate={getNumericDiscountRate()}
           cashFlows={cashFlows}
         />
       </div>

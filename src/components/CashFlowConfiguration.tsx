@@ -5,13 +5,13 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface CashFlowConfigurationProps {
-  baseCashFlow: number;
-  increaseValue: number;
+  baseCashFlow: number | string;
+  increaseValue: number | string;
   increaseType: 'amount' | 'percent';
   increaseFrequency: number;
   timePeriod: number | string;
-  onBaseCashFlowChange: (value: number) => void;
-  onIncreaseValueChange: (value: number) => void;
+  onBaseCashFlowChange: (value: number | string) => void;
+  onIncreaseValueChange: (value: number | string) => void;
   onIncreaseTypeChange: (value: 'amount' | 'percent') => void;
   onIncreaseFrequencyChange: (value: number) => void;
   onTimePeriodChange: (value: number | string) => void;
@@ -43,7 +43,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           id="base-cash-flow"
           type="number"
           value={baseCashFlow}
-          onChange={(e) => onBaseCashFlowChange(Number(e.target.value) || 0)}
+          onChange={(e) => onBaseCashFlowChange(e.target.value === '' ? '' : Number(e.target.value))}
           placeholder="Enter initial lease rent"
           className="text-lg"
         />
@@ -77,7 +77,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           id="increase-value"
           type="number"
           value={increaseValue}
-          onChange={(e) => onIncreaseValueChange(Number(e.target.value) || 0)}
+          onChange={(e) => onIncreaseValueChange(e.target.value === '' ? '' : Number(e.target.value))}
           placeholder={increaseType === 'amount' ? 'Enter dollar increase' : 'Enter percentage increase'}
           step={increaseType === 'percent' ? '0.1' : '1'}
           className="text-lg"
