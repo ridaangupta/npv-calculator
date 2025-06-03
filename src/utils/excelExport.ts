@@ -35,11 +35,8 @@ interface ExportData {
 export const generateExcelReport = async (data: ExportData) => {
   const workbook = new ExcelJS.Workbook();
   
-  // Create worksheets
-  createInputSheet(workbook, data);
-  createCalculationsSheet(workbook, data);
-  createResultsSheet(workbook, data);
-  createChartDataSheet(workbook, data);
+  // Create the main consolidated worksheet and instructions
+  createConsolidatedSheet(workbook, data);
   createInstructionsSheet(workbook, data);
   
   // Generate filename with timestamp
@@ -52,12 +49,13 @@ export const generateExcelReport = async (data: ExportData) => {
   saveAs(blob, filename);
 };
 
-const createInputSheet = (workbook: ExcelJS.Workbook, data: ExportData) => {
-  const worksheet = workbook.addWorksheet('Input Parameters');
+const createConsolidatedSheet = (workbook: ExcelJS.Workbook, data: ExportData) => {
+  const worksheet = workbook.addWorksheet('NPV Analysis');
   
-  // Header
-  worksheet.addRow(['NPV Calculator - Input Parameters']);
+  // ==================== SECTION A: INPUT PARAMETERS (Rows 1-15) ====================
+  worksheet.addRow(['NPV Calculator - Complete Analysis']);
   worksheet.addRow(['']);
+  worksheet.addRow(['=== INPUT PARAMETERS ===']);
   worksheet.addRow(['Parameter', 'Value', 'Unit', 'Description']);
   worksheet.addRow(['Currency', data.currency.code, '', data.currency.name]);
   worksheet.addRow(['Discount Rate', data.discountRate, '%', 'Annual discount rate for NPV calculation']);
@@ -69,143 +67,149 @@ const createInputSheet = (workbook: ExcelJS.Workbook, data: ExportData) => {
   worksheet.addRow(['Total Hectares', data.totalHectares, 'hectares', 'Total project area']);
   worksheet.addRow(['']);
   worksheet.addRow(['Generated on:', new Date().toLocaleString()]);
-  
-  // Set column widths
-  worksheet.getColumn(1).width = 20;
-  worksheet.getColumn(2).width = 15;
-  worksheet.getColumn(3).width = 15;
-  worksheet.getColumn(4).width = 40;
-  
-  // Style the header
-  worksheet.getRow(1).font = { bold: true, size: 14 };
-  worksheet.getRow(3).font = { bold: true };
-  
-  // Define named ranges for inputs
-  workbook.definedNames.add('DiscountRate', `'Input Parameters'!$B$5`);
-  workbook.definedNames.add('BaseCashFlow', `'Input Parameters'!$B$6`);
-  workbook.definedNames.add('IncreaseValue', `'Input Parameters'!$B$7`);
-  workbook.definedNames.add('IncreaseFrequency', `'Input Parameters'!$B$9`);
-  workbook.definedNames.add('TimePeriod', `'Input Parameters'!$B$10`);
-  workbook.definedNames.add('TotalHectares', `'Input Parameters'!$B$11`);
-};
-
-const createCalculationsSheet = (workbook: ExcelJS.Workbook, data: ExportData) => {
-  const worksheet = workbook.addWorksheet('Calculations');
-  
-  // Header
-  worksheet.addRow(['NPV Calculator - Cash Flow Calculations']);
   worksheet.addRow(['']);
+  
+  // ==================== SECTION B: CASH FLOW CALCULATIONS (Rows 17+) ====================
+  const calculationsStartRow = 17;
+  worksheet.addRow(['=== CASH FLOW CALCULATIONS ===']);
   worksheet.addRow(['Year', 'Cash Flow (per m²)', 'Cash Flow (per hectare)', 'Present Value', 'Cumulative PV']);
   
-  // Add calculation rows with Excel formulas
+  // Add calculation rows with Excel formulas using direct cell references
   for (let year = 1; year <= data.timePeriod; year++) {
     const row = worksheet.addRow([]);
+    const currentRow = calculationsStartRow + 1 + year;
     
     // Year
     row.getCell(1).value = year;
     
-    // Cash flow per m² with formula
+    // Cash flow per m² with formula using direct cell references
     if (year === 1) {
-      row.getCell(2).value = { formula: 'BaseCashFlow' };
+      row.getCell(2).value = { formula: '$B$7' }; // Reference to Initial Lease Rent
     } else {
-      if (data.increaseType === 'amount') {
-        row.getCell(2).value = { formula: `B${year + 2}+IncreaseValue/IncreaseFrequency` };
-      } else {
-        row.getCell(2).value = { formula: `B${year + 2}*(1+IncreaseValue/IncreaseFrequency/100)` };
-      }
+      const prevRow = currentRow - 1;
+      // Check increase type using cell reference
+      row.getCell(2).value = { 
+        formula: `IF($B$9="Percentage",B${prevRow}*(1+$B$8/$B$10/100),B${prevRow}+$B$8/$B$10)` 
+      };
     }
     
     // Cash flow per hectare (multiply by 10,000)
-    row.getCell(3).value = { formula: `B${year + 3}*10000` };
+    row.getCell(3).value = { formula: `B${currentRow}*10000` };
     
-    // Present Value
-    row.getCell(4).value = { formula: `C${year + 3}/POWER(1+DiscountRate/100,A${year + 3})` };
+    // Present Value using direct cell reference to discount rate
+    row.getCell(4).value = { formula: `C${currentRow}/POWER(1+$B$6/100,A${currentRow})` };
     
     // Cumulative Present Value
     if (year === 1) {
-      row.getCell(5).value = { formula: `D${year + 3}` };
+      row.getCell(5).value = { formula: `D${currentRow}` };
     } else {
-      row.getCell(5).value = { formula: `E${year + 2}+D${year + 3}` };
+      const prevRow = currentRow - 1;
+      row.getCell(5).value = { formula: `E${prevRow}+D${currentRow}` };
     }
   }
   
-  // Add totals row
+  // Add spacing and totals
+  const totalsRow = calculationsStartRow + 2 + data.timePeriod;
   worksheet.addRow(['']);
-  const totalRow = worksheet.addRow(['TOTALS:', '', '', { formula: `SUM(D4:D${data.timePeriod + 3})` }, '']);
-  totalRow.font = { bold: true };
+  const totalRowData = worksheet.addRow(['TOTALS:', '', '', { formula: `SUM(D${calculationsStartRow + 2}:D${calculationsStartRow + 1 + data.timePeriod})` }, '']);
+  totalRowData.font = { bold: true };
   
-  // Set column widths
-  worksheet.getColumn(1).width = 8;
-  worksheet.getColumn(2).width = 18;
-  worksheet.getColumn(3).width = 20;
-  worksheet.getColumn(4).width = 18;
-  worksheet.getColumn(5).width = 18;
-  
-  // Style the header
-  worksheet.getRow(1).font = { bold: true, size: 14 };
-  worksheet.getRow(3).font = { bold: true };
-};
-
-const createResultsSheet = (workbook: ExcelJS.Workbook, data: ExportData) => {
-  const worksheet = workbook.addWorksheet('Results Summary');
-  
-  worksheet.addRow(['NPV Calculator - Results Summary']);
+  // ==================== SECTION C: RESULTS SUMMARY (Starting after calculations) ====================
+  const resultsStartRow = totalsRow + 3;
   worksheet.addRow(['']);
+  worksheet.addRow(['=== RESULTS SUMMARY ===']);
   worksheet.addRow(['Metric', 'Value', 'Unit', 'Status']);
-  worksheet.addRow(['NPV per Hectare', { formula: `Calculations.D${data.timePeriod + 4}` }, data.currency.symbol, { formula: 'IF(B4>0,"Profitable","Unprofitable")' }]);
-  worksheet.addRow(['Total Project NPV', { formula: 'B4*TotalHectares' }, data.currency.symbol, { formula: 'IF(B5>0,"Profitable","Unprofitable")' }]);
+  
+  const npvRow = resultsStartRow + 3;
+  const totalNpvRow = resultsStartRow + 4;
+  
+  worksheet.addRow(['NPV per Hectare', { formula: `D${totalsRow}` }, data.currency.symbol, { formula: `IF(B${npvRow}>0,"Profitable","Unprofitable")` }]);
+  worksheet.addRow(['Total Project NPV', { formula: `B${npvRow}*$B$12` }, data.currency.symbol, { formula: `IF(B${totalNpvRow}>0,"Profitable","Unprofitable")` }]);
   worksheet.addRow(['']);
   worksheet.addRow(['Project Details', '', '', '']);
-  worksheet.addRow(['Total Hectares', { formula: 'TotalHectares' }, 'hectares', '']);
-  worksheet.addRow(['Analysis Period', { formula: 'TimePeriod' }, 'years', '']);
-  worksheet.addRow(['Discount Rate', { formula: 'DiscountRate' }, '%', '']);
+  worksheet.addRow(['Total Hectares', { formula: '$B$12' }, 'hectares', '']);
+  worksheet.addRow(['Analysis Period', { formula: '$B$11' }, 'years', '']);
+  worksheet.addRow(['Discount Rate', { formula: '$B$6' }, '%', '']);
   worksheet.addRow(['']);
   worksheet.addRow(['Cash Flow Summary', '', '', '']);
-  worksheet.addRow(['Total Future Cash Flows', { formula: `SUM(Calculations.C4:C${data.timePeriod + 3})` }, `${data.currency.symbol}/hectare`, '']);
-  worksheet.addRow(['Total Present Value', { formula: `Calculations.D${data.timePeriod + 4}` }, `${data.currency.symbol}/hectare`, '']);
+  worksheet.addRow(['Total Future Cash Flows', { formula: `SUM(C${calculationsStartRow + 2}:C${calculationsStartRow + 1 + data.timePeriod})` }, `${data.currency.symbol}/hectare`, '']);
+  worksheet.addRow(['Total Present Value', { formula: `D${totalsRow}` }, `${data.currency.symbol}/hectare`, '']);
+  worksheet.addRow(['Average Annual Cash Flow', { formula: `AVERAGE(C${calculationsStartRow + 2}:C${calculationsStartRow + 1 + data.timePeriod})` }, `${data.currency.symbol}/hectare`, '']);
+  worksheet.addRow(['Final Year Cash Flow', { formula: `C${calculationsStartRow + 1 + data.timePeriod}` }, `${data.currency.symbol}/hectare`, '']);
+  
+  // ==================== SECTION D: CHART DATA (Starting after results) ====================
+  const chartStartRow = resultsStartRow + 16;
   worksheet.addRow(['']);
-  worksheet.addRow(['Key Insights', '', '', '']);
-  worksheet.addRow(['Break-even Year', 'See Chart Data', '', '']);
-  worksheet.addRow(['Average Annual Cash Flow', { formula: `AVERAGE(Calculations.C4:C${data.timePeriod + 3})` }, `${data.currency.symbol}/hectare`, '']);
-  worksheet.addRow(['Final Year Cash Flow', { formula: `Calculations.C${data.timePeriod + 3}` }, `${data.currency.symbol}/hectare`, '']);
-  
-  // Set column widths
-  worksheet.getColumn(1).width = 25;
-  worksheet.getColumn(2).width = 20;
-  worksheet.getColumn(3).width = 15;
-  worksheet.getColumn(4).width = 15;
-  
-  // Style the header
-  worksheet.getRow(1).font = { bold: true, size: 14 };
-  worksheet.getRow(3).font = { bold: true };
-};
-
-const createChartDataSheet = (workbook: ExcelJS.Workbook, data: ExportData) => {
-  const worksheet = workbook.addWorksheet('Chart Data');
-  
-  worksheet.addRow(['Chart Data - Ready for Excel Charts']);
-  worksheet.addRow(['']);
+  worksheet.addRow(['=== CHART DATA ===']);
   worksheet.addRow(['Year', 'Future Value', 'Present Value', 'Cumulative PV']);
   
-  // Add data references to calculations sheet
+  // Add chart data with direct references to calculation section
   for (let year = 1; year <= data.timePeriod; year++) {
-    const row = worksheet.addRow([
-      { formula: `Calculations.A${year + 3}` },
-      { formula: `Calculations.C${year + 3}` },
-      { formula: `Calculations.D${year + 3}` },
-      { formula: `Calculations.E${year + 3}` }
+    const calcRow = calculationsStartRow + 1 + year;
+    const chartRow = worksheet.addRow([
+      { formula: `A${calcRow}` },
+      { formula: `C${calcRow}` },
+      { formula: `D${calcRow}` },
+      { formula: `E${calcRow}` }
     ]);
   }
   
+  // ==================== FORMATTING ====================
   // Set column widths
-  worksheet.getColumn(1).width = 8;
-  worksheet.getColumn(2).width = 15;
-  worksheet.getColumn(3).width = 15;
-  worksheet.getColumn(4).width = 15;
+  worksheet.getColumn(1).width = 25;
+  worksheet.getColumn(2).width = 20;
+  worksheet.getColumn(3).width = 20;
+  worksheet.getColumn(4).width = 20;
+  worksheet.getColumn(5).width = 18;
   
-  // Style the header
-  worksheet.getRow(1).font = { bold: true, size: 14 };
-  worksheet.getRow(3).font = { bold: true };
+  // Style headers
+  worksheet.getRow(1).font = { bold: true, size: 16 };
+  worksheet.getRow(3).font = { bold: true, size: 12, color: { argb: 'FF0066CC' } };
+  worksheet.getRow(4).font = { bold: true };
+  worksheet.getRow(calculationsStartRow).font = { bold: true, size: 12, color: { argb: 'FF0066CC' } };
+  worksheet.getRow(calculationsStartRow + 1).font = { bold: true };
+  worksheet.getRow(resultsStartRow + 1).font = { bold: true, size: 12, color: { argb: 'FF0066CC' } };
+  worksheet.getRow(resultsStartRow + 2).font = { bold: true };
+  worksheet.getRow(chartStartRow).font = { bold: true, size: 12, color: { argb: 'FF0066CC' } };
+  worksheet.getRow(chartStartRow + 1).font = { bold: true };
+  
+  // Add borders and shading to input parameters section
+  for (let row = 4; row <= 12; row++) {
+    const currentRow = worksheet.getRow(row);
+    currentRow.eachCell((cell, colNumber) => {
+      if (colNumber <= 4) {
+        cell.border = {
+          top: {style:'thin'},
+          left: {style:'thin'},
+          bottom: {style:'thin'},
+          right: {style:'thin'}
+        };
+        if (colNumber === 2) {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFF0F8FF' }
+          };
+        }
+      }
+    });
+  }
+  
+  // Add borders to calculation section
+  for (let year = 1; year <= data.timePeriod; year++) {
+    const currentRow = worksheet.getRow(calculationsStartRow + 1 + year);
+    currentRow.eachCell((cell, colNumber) => {
+      if (colNumber <= 5) {
+        cell.border = {
+          top: {style:'thin'},
+          left: {style:'thin'},
+          bottom: {style:'thin'},
+          right: {style:'thin'}
+        };
+        cell.numFmt = colNumber === 1 ? '0' : '#,##0.00';
+      }
+    });
+  }
 };
 
 const createInstructionsSheet = (workbook: ExcelJS.Workbook, data: ExportData) => {
@@ -217,40 +221,48 @@ const createInstructionsSheet = (workbook: ExcelJS.Workbook, data: ExportData) =
     ['How to Use This Excel File:'],
     [''],
     ['1. MODIFYING INPUTS:'],
-    ['   • Go to the "Input Parameters" sheet'],
-    ['   • Change any values in column B (rows 5-11)'],
-    ['   • All calculations will update automatically'],
+    ['   • Go to the "NPV Analysis" sheet'],
+    ['   • Change any values in column B (rows 6-12) in the INPUT PARAMETERS section'],
+    ['   • All calculations will update automatically throughout the sheet'],
     [''],
     ['2. VIEWING RESULTS:'],
-    ['   • Check the "Results Summary" sheet for key metrics'],
-    ['   • Review the "Calculations" sheet for detailed cash flows'],
-    ['   • All values are linked with Excel formulas'],
+    ['   • Scroll down to the RESULTS SUMMARY section for key metrics'],
+    ['   • Review the CASH FLOW CALCULATIONS section for detailed annual flows'],
+    ['   • All sections are on the same sheet for easy reference'],
     [''],
     ['3. CREATING CHARTS:'],
-    ['   • Use data from the "Chart Data" sheet'],
+    ['   • Use data from the CHART DATA section at the bottom'],
     ['   • Recommended chart types:'],
-    ['     - Line chart for cash flow trends'],
-    ['     - Column chart for present value comparison'],
-    ['     - Area chart for cumulative present value'],
+    ['     - Line chart for cash flow trends over time'],
+    ['     - Column chart for present value vs future value comparison'],
+    ['     - Area chart for cumulative present value growth'],
     [''],
     ['4. SCENARIO ANALYSIS:'],
     ['   • Create multiple copies of this file'],
-    ['   • Modify inputs for different scenarios'],
+    ['   • Modify input parameters for different scenarios'],
     ['   • Compare NPV results across scenarios'],
     [''],
     ['5. KEY FORMULAS USED:'],
     ['   • Present Value = Future Value / (1 + Discount Rate)^Year'],
     ['   • NPV = Sum of all Present Values'],
     ['   • Cash Flow per Hectare = Cash Flow per m² × 10,000'],
+    ['   • Annual Increase = Base Increase ÷ Increase Frequency'],
     [''],
     ['6. IMPORTANT NOTES:'],
-    ['   • Do not modify formulas in the Calculations sheet'],
-    ['   • Only change values in the Input Parameters sheet'],
+    ['   • Only modify values in the INPUT PARAMETERS section (column B, rows 6-12)'],
+    ['   • Do not change formulas in other sections'],
+    ['   • All calculations are on one sheet to ensure reliability'],
     ['   • Currency conversions are not automatic - use web app for currency changes'],
+    [''],
+    ['7. TROUBLESHOOTING:'],
+    ['   • If calculations seem wrong, check the Increase Type value (row 9)'],
+    ['   • Ensure all input values are positive numbers'],
+    ['   • Time Period and Increase Frequency must be whole numbers'],
     [''],
     ['Generated by NPV Calculator Web Application'],
     [`Report Date: ${new Date().toLocaleDateString()}`],
     [`Currency: ${data.currency.name} (${data.currency.code})`],
+    [`Analysis covers ${data.timePeriod} years with ${data.totalHectares} hectares`],
   ];
   
   instructions.forEach(instruction => {
@@ -262,4 +274,12 @@ const createInstructionsSheet = (workbook: ExcelJS.Workbook, data: ExportData) =
   
   // Style the header
   worksheet.getRow(1).font = { bold: true, size: 14 };
+  
+  // Style section headers
+  [3, 5, 10, 18, 25, 32, 38].forEach(rowNumber => {
+    const row = worksheet.getRow(rowNumber);
+    if (row.getCell(1).value) {
+      row.font = { bold: true, color: { argb: 'FF0066CC' } };
+    }
+  });
 };
