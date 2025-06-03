@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CashFlowConfiguration from './CashFlowConfiguration';
@@ -16,81 +17,114 @@ interface CashFlow {
 
 const NPVCalculator = () => {
   const isMobile = useIsMobile();
-  const [discountRate, setDiscountRate] = useState<number | string>(10);
-  const [baseCashFlow, setBaseCashFlow] = useState<number | string>(0);
-  const [increaseValue, setIncreaseValue] = useState<number | string>(0);
+  // Use string values for input fields to maintain focus
+  const [discountRateInput, setDiscountRateInput] = useState<string>('10');
+  const [baseCashFlowInput, setBaseCashFlowInput] = useState<string>('0');
+  const [increaseValueInput, setIncreaseValueInput] = useState<string>('0');
   const [increaseType, setIncreaseType] = useState<'amount' | 'percent'>('amount');
   const [increaseFrequency, setIncreaseFrequency] = useState<number>(1);
-  const [timePeriod, setTimePeriod] = useState<number | string>(5);
-  const [totalHectares, setTotalHectares] = useState<number | string>(1);
+  const [timePeriodInput, setTimePeriodInput] = useState<string>('5');
+  const [totalHectaresInput, setTotalHectaresInput] = useState<string>('1');
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [npv, setNpv] = useState<number>(0);
 
   // Helper functions to get numeric values with fallbacks
-  const getNumericDiscountRate = () => {
-    const num = Number(discountRate);
+  const getNumericDiscountRate = useCallback(() => {
+    const num = Number(discountRateInput);
     return isNaN(num) || num < 0 ? 0 : num;
-  };
+  }, [discountRateInput]);
 
-  const getNumericBaseCashFlow = () => {
-    const num = Number(baseCashFlow);
+  const getNumericBaseCashFlow = useCallback(() => {
+    const num = Number(baseCashFlowInput);
     return isNaN(num) || num < 0 ? 0 : num;
-  };
+  }, [baseCashFlowInput]);
 
-  const getNumericIncreaseValue = () => {
-    const num = Number(increaseValue);
+  const getNumericIncreaseValue = useCallback(() => {
+    const num = Number(increaseValueInput);
     return isNaN(num) || num < 0 ? 0 : num;
-  };
+  }, [increaseValueInput]);
 
-  const getNumericTimePeriod = () => {
-    const num = Number(timePeriod);
+  const getNumericTimePeriod = useCallback(() => {
+    const num = Number(timePeriodInput);
     return isNaN(num) || num <= 0 ? 1 : num;
-  };
+  }, [timePeriodInput]);
 
-  const getNumericTotalHectares = () => {
-    const num = Number(totalHectares);
+  const getNumericTotalHectares = useCallback(() => {
+    const num = Number(totalHectaresInput);
     return isNaN(num) || num <= 0 ? 1 : num;
-  };
+  }, [totalHectaresInput]);
 
-  // Generate cash flows with spread increases instead of discrete jumps
-  // Convert from per m² to per hectare by multiplying by 10,000
+  // Memoized change handlers to prevent re-renders
+  const handleDiscountRateChange = useCallback((value: string) => {
+    setDiscountRateInput(value);
+  }, []);
+
+  const handleBaseCashFlowChange = useCallback((value: string) => {
+    setBaseCashFlowInput(value);
+  }, []);
+
+  const handleIncreaseValueChange = useCallback((value: string) => {
+    setIncreaseValueInput(value);
+  }, []);
+
+  const handleIncreaseTypeChange = useCallback((value: 'amount' | 'percent') => {
+    setIncreaseType(value);
+  }, []);
+
+  const handleIncreaseFrequencyChange = useCallback((value: number) => {
+    setIncreaseFrequency(value);
+  }, []);
+
+  const handleTimePeriodChange = useCallback((value: string) => {
+    setTimePeriodInput(value);
+  }, []);
+
+  const handleTotalHectaresChange = useCallback((value: string) => {
+    setTotalHectaresInput(value);
+  }, []);
+
+  // Generate cash flows with debounced calculation
   useEffect(() => {
-    const generatedFlows: CashFlow[] = [];
-    const numericTimePeriod = getNumericTimePeriod();
-    const numericBaseCashFlow = getNumericBaseCashFlow();
-    const numericIncreaseValue = getNumericIncreaseValue();
-    
-    // Calculate equivalent annual increase by spreading over frequency period
-    const annualIncreaseValue = numericIncreaseValue / increaseFrequency;
-    let currentCashFlowPerM2 = numericBaseCashFlow;
-    
-    for (let year = 1; year <= numericTimePeriod; year++) {
-      // Apply the equivalent annual increase every year (except year 1)
-      if (year > 1) {
-        if (increaseType === 'amount') {
-          currentCashFlowPerM2 += annualIncreaseValue;
-        } else if (increaseType === 'percent') {
-          currentCashFlowPerM2 = currentCashFlowPerM2 * (1 + annualIncreaseValue / 100);
+    const timeoutId = setTimeout(() => {
+      const generatedFlows: CashFlow[] = [];
+      const numericTimePeriod = getNumericTimePeriod();
+      const numericBaseCashFlow = getNumericBaseCashFlow();
+      const numericIncreaseValue = getNumericIncreaseValue();
+      
+      // Calculate equivalent annual increase by spreading over frequency period
+      const annualIncreaseValue = numericIncreaseValue / increaseFrequency;
+      let currentCashFlowPerM2 = numericBaseCashFlow;
+      
+      for (let year = 1; year <= numericTimePeriod; year++) {
+        // Apply the equivalent annual increase every year (except year 1)
+        if (year > 1) {
+          if (increaseType === 'amount') {
+            currentCashFlowPerM2 += annualIncreaseValue;
+          } else if (increaseType === 'percent') {
+            currentCashFlowPerM2 = currentCashFlowPerM2 * (1 + annualIncreaseValue / 100);
+          }
         }
+        
+        // Convert from per m² to per hectare (multiply by 10,000)
+        const currentCashFlowPerHectare = currentCashFlowPerM2 * 10000;
+        
+        // Round to 2 decimal places
+        const roundedCashFlow = Math.round(currentCashFlowPerHectare * 100) / 100;
+        
+        generatedFlows.push({
+          id: year.toString(),
+          year: year,
+          amount: Math.max(0, roundedCashFlow)
+        });
       }
       
-      // Convert from per m² to per hectare (multiply by 10,000)
-      const currentCashFlowPerHectare = currentCashFlowPerM2 * 10000;
-      
-      // Round to 2 decimal places
-      const roundedCashFlow = Math.round(currentCashFlowPerHectare * 100) / 100;
-      
-      generatedFlows.push({
-        id: year.toString(),
-        year: year,
-        amount: Math.max(0, roundedCashFlow)
-      });
-    }
-    
-    setCashFlows(generatedFlows);
-  }, [baseCashFlow, increaseValue, increaseType, increaseFrequency, timePeriod]);
+      setCashFlows(generatedFlows);
+    }, 300); // 300ms debounce
 
-  const calculateNPV = () => {
+    return () => clearTimeout(timeoutId);
+  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, getNumericTimePeriod, getNumericBaseCashFlow, getNumericIncreaseValue]);
+
+  const calculateNPV = useCallback(() => {
     let npvValue = 0;
     const numericDiscountRate = getNumericDiscountRate();
     
@@ -100,11 +134,15 @@ const NPVCalculator = () => {
     });
     
     setNpv(npvValue);
-  };
+  }, [getNumericDiscountRate, cashFlows]);
 
   useEffect(() => {
-    calculateNPV();
-  }, [discountRate, cashFlows]);
+    const timeoutId = setTimeout(() => {
+      calculateNPV();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [calculateNPV]);
 
   const InputSection = () => (
     <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
@@ -118,8 +156,8 @@ const NPVCalculator = () => {
           <input
             id="discount-rate"
             type="number"
-            value={discountRate}
-            onChange={(e) => setDiscountRate(e.target.value === '' ? '' : e.target.value)}
+            value={discountRateInput}
+            onChange={(e) => handleDiscountRateChange(e.target.value)}
             placeholder="Enter discount rate"
             step="0.01"
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
@@ -127,23 +165,23 @@ const NPVCalculator = () => {
         </div>
 
         <CashFlowConfiguration
-          baseCashFlow={baseCashFlow}
-          increaseValue={increaseValue}
+          baseCashFlow={baseCashFlowInput}
+          increaseValue={increaseValueInput}
           increaseType={increaseType}
           increaseFrequency={increaseFrequency}
-          timePeriod={timePeriod}
-          onBaseCashFlowChange={setBaseCashFlow}
-          onIncreaseValueChange={setIncreaseValue}
-          onIncreaseTypeChange={setIncreaseType}
-          onIncreaseFrequencyChange={setIncreaseFrequency}
-          onTimePeriodChange={setTimePeriod}
+          timePeriod={timePeriodInput}
+          onBaseCashFlowChange={handleBaseCashFlowChange}
+          onIncreaseValueChange={handleIncreaseValueChange}
+          onIncreaseTypeChange={handleIncreaseTypeChange}
+          onIncreaseFrequencyChange={handleIncreaseFrequencyChange}
+          onTimePeriodChange={handleTimePeriodChange}
         />
 
         <CashFlowPreview cashFlows={cashFlows} />
 
         <HectaresInput
-          totalHectares={totalHectares}
-          onTotalHectaresChange={setTotalHectares}
+          totalHectares={totalHectaresInput}
+          onTotalHectaresChange={handleTotalHectaresChange}
         />
       </CardContent>
     </Card>

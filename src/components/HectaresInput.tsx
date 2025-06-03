@@ -1,12 +1,12 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface HectaresInputProps {
-  totalHectares: number | string;
-  onTotalHectaresChange: (value: number | string) => void;
+  totalHectares: string;
+  onTotalHectaresChange: (value: string) => void;
 }
 
 const HectaresInput: React.FC<HectaresInputProps> = ({
@@ -14,6 +14,10 @@ const HectaresInput: React.FC<HectaresInputProps> = ({
   onTotalHectaresChange
 }) => {
   const { selectedCurrency } = useCurrency();
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onTotalHectaresChange(e.target.value);
+  }, [onTotalHectaresChange]);
 
   return (
     <div className="space-y-2 pt-4 border-t border-gray-200">
@@ -24,7 +28,7 @@ const HectaresInput: React.FC<HectaresInputProps> = ({
         id="total-hectares"
         type="number"
         value={totalHectares}
-        onChange={(e) => onTotalHectaresChange(e.target.value === '' ? '' : Number(e.target.value))}
+        onChange={handleChange}
         placeholder="Enter total hectares"
         min="0.1"
         step="0.1"

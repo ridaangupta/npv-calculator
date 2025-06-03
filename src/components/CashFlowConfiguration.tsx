@@ -1,20 +1,21 @@
-import React from 'react';
+
+import React, { useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface CashFlowConfigurationProps {
-  baseCashFlow: number | string;
-  increaseValue: number | string;
+  baseCashFlow: string;
+  increaseValue: string;
   increaseType: 'amount' | 'percent';
   increaseFrequency: number;
-  timePeriod: number | string;
-  onBaseCashFlowChange: (value: number | string) => void;
-  onIncreaseValueChange: (value: number | string) => void;
+  timePeriod: string;
+  onBaseCashFlowChange: (value: string) => void;
+  onIncreaseValueChange: (value: string) => void;
   onIncreaseTypeChange: (value: 'amount' | 'percent') => void;
   onIncreaseFrequencyChange: (value: number) => void;
-  onTimePeriodChange: (value: number | string) => void;
+  onTimePeriodChange: (value: string) => void;
 }
 
 const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
@@ -31,43 +32,30 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
 }) => {
   const { selectedCurrency, convertFromUSD, convertToUSD } = useCurrency();
 
-  const handleBaseCashFlowChange = (value: string) => {
-    if (value === '') {
-      onBaseCashFlowChange('');
-      return;
-    }
-    // Convert from selected currency to USD for storage
-    const usdValue = convertToUSD(Number(value));
-    onBaseCashFlowChange(usdValue);
-  };
+  const handleBaseCashFlowChange = useCallback((value: string) => {
+    onBaseCashFlowChange(value);
+  }, [onBaseCashFlowChange]);
 
-  const handleIncreaseValueChange = (value: string) => {
-    if (value === '') {
-      onIncreaseValueChange('');
-      return;
-    }
-    if (increaseType === 'amount') {
-      // Convert from selected currency to USD for storage
-      const usdValue = convertToUSD(Number(value));
-      onIncreaseValueChange(usdValue);
-    } else {
-      // Percentage remains the same regardless of currency
-      onIncreaseValueChange(value);
-    }
-  };
+  const handleIncreaseValueChange = useCallback((value: string) => {
+    onIncreaseValueChange(value);
+  }, [onIncreaseValueChange]);
 
-  const getDisplayBaseCashFlow = () => {
-    if (baseCashFlow === '' || baseCashFlow === 0) return '';
-    return convertFromUSD(Number(baseCashFlow)).toFixed(selectedCurrency.decimalDigits);
-  };
+  const getDisplayBaseCashFlow = useCallback(() => {
+    if (baseCashFlow === '' || baseCashFlow === '0') return '';
+    const usdValue = Number(baseCashFlow);
+    if (isNaN(usdValue)) return baseCashFlow;
+    return convertFromUSD(usdValue).toFixed(selectedCurrency.decimalDigits);
+  }, [baseCashFlow, convertFromUSD, selectedCurrency.decimalDigits]);
 
-  const getDisplayIncreaseValue = () => {
-    if (increaseValue === '' || increaseValue === 0) return '';
-    if (increaseType === 'percent') return increaseValue.toString();
-    return convertFromUSD(Number(increaseValue)).toFixed(selectedCurrency.decimalDigits);
-  };
+  const getDisplayIncreaseValue = useCallback(() => {
+    if (increaseValue === '' || increaseValue === '0') return '';
+    if (increaseType === 'percent') return increaseValue;
+    const usdValue = Number(increaseValue);
+    if (isNaN(usdValue)) return increaseValue;
+    return convertFromUSD(usdValue).toFixed(selectedCurrency.decimalDigits);
+  }, [increaseValue, increaseType, convertFromUSD, selectedCurrency.decimalDigits]);
 
-  const getDisplayAnnualIncrease = () => {
+  const getDisplayAnnualIncrease = useCallback(() => {
     if (increaseType === 'amount') {
       const usdAnnualIncrease = Number(increaseValue) / increaseFrequency || 0;
       const displayAnnualIncrease = convertFromUSD(usdAnnualIncrease);
@@ -75,7 +63,42 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
     } else {
       return `${(Number(increaseValue) / increaseFrequency || 0).toFixed(2)}% per year`;
     }
-  };
+  }, [increaseType, increaseValue, increaseFrequency, convertFromUSD, selectedCurrency]);
+
+  const handleBaseCashFlowInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '') {
+      handleBaseCashFlowChange('');
+      return;
+    }
+    // Store USD value but allow typing in display currency
+    const numericValue = Number(value);
+    if (!isNaN(numericValue)) {
+      const usdValue = convertToUSD(numericValue);
+      handleBaseCashFlowChange(usdValue.toString());
+    } else {
+      handleBaseCashFlowChange(value);
+    }
+  }, [handleBaseCashFlowChange, convertToUSD]);
+
+  const handleIncreaseValueInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '') {
+      handleIncreaseValueChange('');
+      return;
+    }
+    if (increaseType === 'amount') {
+      const numericValue = Number(value);
+      if (!isNaN(numericValue)) {
+        const usdValue = convertToUSD(numericValue);
+        handleIncreaseValueChange(usdValue.toString());
+      } else {
+        handleIncreaseValueChange(value);
+      }
+    } else {
+      handleIncreaseValueChange(value);
+    }
+  }, [handleIncreaseValueChange, increaseType, convertToUSD]);
 
   return (
     <div className="space-y-4">
@@ -95,7 +118,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
             id="base-cash-flow"
             type="number"
             value={getDisplayBaseCashFlow()}
-            onChange={(e) => handleBaseCashFlowChange(e.target.value)}
+            onChange={handleBaseCashFlowInputChange}
             placeholder={`Enter initial lease rent per square meter in ${selectedCurrency.code}`}
             step="0.01"
             className="text-lg pl-8"
@@ -142,7 +165,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
             id="increase-value"
             type="number"
             value={getDisplayIncreaseValue()}
-            onChange={(e) => handleIncreaseValueChange(e.target.value)}
+            onChange={handleIncreaseValueInputChange}
             placeholder={increaseType === 'amount' 
               ? `Enter total ${selectedCurrency.symbol}/m² increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
               : `Enter total % increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`}
@@ -195,7 +218,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           id="time-period"
           type="number"
           value={timePeriod}
-          onChange={(e) => onTimePeriodChange(e.target.value === '' ? '' : e.target.value)}
+          onChange={(e) => onTimePeriodChange(e.target.value)}
           placeholder="Enter time period"
           min="0.1"
           step="0.1"
