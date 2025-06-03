@@ -48,7 +48,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           <Input
             id="base-cash-flow"
             type="number"
-            value={baseCashFlow || ''}
+            value={baseCashFlow}
             onChange={(e) => onBaseCashFlowChange(Number(e.target.value) || 0)}
             placeholder="Enter base cash flow"
             className="text-lg"
@@ -107,7 +107,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
             <Input
               id="increase-value"
               type="number"
-              value={increaseValue || ''}
+              value={increaseValue}
               onChange={(e) => onIncreaseValueChange(Number(e.target.value) || 0)}
               placeholder={increaseType === 'amount' ? 'Enter dollar increase' : 'Enter percentage increase'}
               step={increaseType === 'percent' ? '0.1' : '1'}
@@ -156,7 +156,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
         <Input
           id="time-period"
           type="number"
-          value={timePeriod || ''}
+          value={timePeriod}
           onChange={(e) => onTimePeriodChange(Math.max(1, Number(e.target.value) || 1))}
           placeholder="Enter time period"
           min="1"

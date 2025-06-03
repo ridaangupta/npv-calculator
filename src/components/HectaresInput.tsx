@@ -20,7 +20,7 @@ const HectaresInput: React.FC<HectaresInputProps> = ({
       <Input
         id="total-hectares"
         type="number"
-        value={totalHectares || ''}
+        value={totalHectares}
         onChange={(e) => onTotalHectaresChange(Number(e.target.value) || 1)}
         placeholder="Enter total hectares"
         min="0.1"
