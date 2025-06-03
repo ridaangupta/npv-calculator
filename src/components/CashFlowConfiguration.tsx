@@ -43,8 +43,9 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           id="base-cash-flow"
           type="number"
           value={baseCashFlow}
-          onChange={(e) => onBaseCashFlowChange(e.target.value === '' ? '' : Number(e.target.value))}
+          onChange={(e) => onBaseCashFlowChange(e.target.value === '' ? '' : e.target.value)}
           placeholder="Enter initial lease rent"
+          step="0.01"
           className="text-lg"
         />
       </div>
@@ -77,9 +78,9 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           id="increase-value"
           type="number"
           value={increaseValue}
-          onChange={(e) => onIncreaseValueChange(e.target.value === '' ? '' : Number(e.target.value))}
+          onChange={(e) => onIncreaseValueChange(e.target.value === '' ? '' : e.target.value)}
           placeholder={increaseType === 'amount' ? 'Enter dollar increase' : 'Enter percentage increase'}
-          step={increaseType === 'percent' ? '0.1' : '1'}
+          step="0.01"
           className="text-lg"
         />
       </div>
@@ -124,7 +125,7 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           id="time-period"
           type="number"
           value={timePeriod}
-          onChange={(e) => onTimePeriodChange(e.target.value === '' ? '' : Number(e.target.value))}
+          onChange={(e) => onTimePeriodChange(e.target.value === '' ? '' : e.target.value)}
           placeholder="Enter time period"
           min="0.1"
           step="0.1"
