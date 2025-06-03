@@ -72,22 +72,31 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
 
       <div className="space-y-2">
         <Label htmlFor="increase-value" className="text-sm font-medium text-gray-600">
-          {increaseType === 'amount' ? 'Increase Amount ($)' : 'Increase Percentage (%)'}
+          {increaseType === 'amount' 
+            ? `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} ($)` 
+            : `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} (%)`}
         </Label>
         <Input
           id="increase-value"
           type="number"
           value={increaseValue}
           onChange={(e) => onIncreaseValueChange(e.target.value === '' ? '' : e.target.value)}
-          placeholder={increaseType === 'amount' ? 'Enter dollar increase' : 'Enter percentage increase'}
+          placeholder={increaseType === 'amount' 
+            ? `Enter total $ increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
+            : `Enter total % increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`}
           step="0.01"
           className="text-lg"
         />
+        <p className="text-xs text-gray-500">
+          This will be spread evenly over each year ({increaseType === 'amount' 
+            ? `$${(Number(increaseValue) / increaseFrequency || 0).toFixed(2)} per year` 
+            : `${(Number(increaseValue) / increaseFrequency || 0).toFixed(2)}% per year`})
+        </p>
       </div>
 
       <div className="space-y-3">
         <Label className="text-sm font-medium text-gray-600">
-          Increase Frequency
+          Increase Period
         </Label>
         <RadioGroup 
           value={increaseFrequency.toString()} 
@@ -96,23 +105,23 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="1" id="yearly" />
-            <Label htmlFor="yearly" className="text-sm">Every Year</Label>
+            <Label htmlFor="yearly" className="text-sm">1 Year Period</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="2" id="biennial" />
-            <Label htmlFor="biennial" className="text-sm">Every 2 Years</Label>
+            <Label htmlFor="biennial" className="text-sm">2 Year Period</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="3" id="triennial" />
-            <Label htmlFor="triennial" className="text-sm">Every 3 Years</Label>
+            <Label htmlFor="triennial" className="text-sm">3 Year Period</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="4" id="quadrennial" />
-            <Label htmlFor="quadrennial" className="text-sm">Every 4 Years</Label>
+            <Label htmlFor="quadrennial" className="text-sm">4 Year Period</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="5" id="quinquennial" />
-            <Label htmlFor="quinquennial" className="text-sm">Every 5 Years</Label>
+            <Label htmlFor="quinquennial" className="text-sm">5 Year Period</Label>
           </div>
         </RadioGroup>
       </div>

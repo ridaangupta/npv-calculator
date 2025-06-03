@@ -49,25 +49,28 @@ const NPVCalculator = () => {
     return isNaN(num) || num <= 0 ? 1 : num;
   };
 
-  // Generate cash flows based on base amount, increase value, type, and frequency
+  // Generate cash flows with spread increases instead of discrete jumps
   useEffect(() => {
     const generatedFlows: CashFlow[] = [];
     const numericTimePeriod = getNumericTimePeriod();
     const numericBaseCashFlow = getNumericBaseCashFlow();
     const numericIncreaseValue = getNumericIncreaseValue();
+    
+    // Calculate equivalent annual increase by spreading over frequency period
+    const annualIncreaseValue = numericIncreaseValue / increaseFrequency;
     let currentCashFlow = numericBaseCashFlow;
     
     for (let year = 1; year <= numericTimePeriod; year++) {
-      // Check if it's time to apply an increase
-      if (year > 1 && (year - 1) % increaseFrequency === 0) {
+      // Apply the equivalent annual increase every year (except year 1)
+      if (year > 1) {
         if (increaseType === 'amount') {
-          currentCashFlow += numericIncreaseValue;
+          currentCashFlow += annualIncreaseValue;
         } else if (increaseType === 'percent') {
-          currentCashFlow = currentCashFlow * (1 + numericIncreaseValue / 100);
+          currentCashFlow = currentCashFlow * (1 + annualIncreaseValue / 100);
         }
       }
       
-      // Round to 2 decimal places instead of whole numbers
+      // Round to 2 decimal places
       const roundedCashFlow = Math.round(currentCashFlow * 100) / 100;
       
       generatedFlows.push({
