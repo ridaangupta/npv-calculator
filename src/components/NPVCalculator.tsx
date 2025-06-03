@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
-import { Calculator } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import InvestmentInputs from './InvestmentInputs';
+import CashFlowConfiguration from './CashFlowConfiguration';
+import CashFlowPreview from './CashFlowPreview';
+import HectaresInput from './HectaresInput';
 import ResultsDisplay from './ResultsDisplay';
 
 interface CashFlow {
@@ -109,212 +109,40 @@ const NPVCalculator = () => {
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="grid md:grid-cols-2 gap-8">
         {/* Input Section */}
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="w-5 h-5" />
-              Investment Parameters
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="initial-investment" className="text-sm font-medium text-gray-700">
-                Initial Investment ($)
-              </Label>
-              <Input
-                id="initial-investment"
-                type="number"
-                value={initialInvestment || ''}
-                onChange={(e) => setInitialInvestment(Number(e.target.value) || 0)}
-                placeholder="Enter initial investment"
-                className="text-lg"
+        <div className="space-y-6">
+          <InvestmentInputs
+            initialInvestment={initialInvestment}
+            discountRate={discountRate}
+            onInitialInvestmentChange={setInitialInvestment}
+            onDiscountRateChange={setDiscountRate}
+          />
+          
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6 space-y-6">
+              <CashFlowConfiguration
+                baseCashFlow={baseCashFlow}
+                increaseValue={increaseValue}
+                increaseType={increaseType}
+                increaseFrequency={increaseFrequency}
+                timePeriod={timePeriod}
+                cashFlowFunction={cashFlowFunction}
+                onBaseCashFlowChange={setBaseCashFlow}
+                onIncreaseValueChange={setIncreaseValue}
+                onIncreaseTypeChange={setIncreaseType}
+                onIncreaseFrequencyChange={setIncreaseFrequency}
+                onTimePeriodChange={setTimePeriod}
+                onCashFlowFunctionChange={setCashFlowFunction}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="discount-rate" className="text-sm font-medium text-gray-700">
-                Discount Rate (%)
-              </Label>
-              <Input
-                id="discount-rate"
-                type="number"
-                value={discountRate || ''}
-                onChange={(e) => setDiscountRate(Number(e.target.value) || 0)}
-                placeholder="Enter discount rate"
-                step="0.1"
-                className="text-lg"
+              <CashFlowPreview cashFlows={cashFlows} />
+
+              <HectaresInput
+                totalHectares={totalHectares}
+                onTotalHectaresChange={setTotalHectares}
               />
-            </div>
-
-            <div className="space-y-4">
-              <Label className="text-sm font-medium text-gray-700">
-                Cash Flow Parameters
-              </Label>
-              
-              {increaseType !== 'function' && (
-                <div className="space-y-2">
-                  <Label htmlFor="base-cash-flow" className="text-sm font-medium text-gray-600">
-                    Base Cash Flow - Year 1 ($)
-                  </Label>
-                  <Input
-                    id="base-cash-flow"
-                    type="number"
-                    value={baseCashFlow || ''}
-                    onChange={(e) => setBaseCashFlow(Number(e.target.value) || 0)}
-                    placeholder="Enter base cash flow"
-                    className="text-lg"
-                  />
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-gray-600">
-                  Cash Flow Type
-                </Label>
-                <RadioGroup 
-                  value={increaseType} 
-                  onValueChange={(value: 'amount' | 'percent' | 'function') => setIncreaseType(value)}
-                  className="space-y-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="amount" id="amount" />
-                    <Label htmlFor="amount" className="text-sm">Fixed Dollar Increase</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="percent" id="percent" />
-                    <Label htmlFor="percent" className="text-sm">Percentage Increase</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="function" id="function" />
-                    <Label htmlFor="function" className="text-sm">Custom Function</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {increaseType === 'function' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="cash-flow-function" className="text-sm font-medium text-gray-600">
-                    Cash Flow Function f(t)
-                  </Label>
-                  <Textarea
-                    id="cash-flow-function"
-                    value={cashFlowFunction}
-                    onChange={(e) => setCashFlowFunction(e.target.value)}
-                    placeholder="e.g., 1000 * exp(0.1 * t) or 500 + 100 * t^2"
-                    className="text-sm font-mono"
-                    rows={3}
-                  />
-                  <p className="text-xs text-gray-500">
-                    Enter a function where 't' is years after investment. 
-                    Supports: +, -, *, /, ^, exp(), log(), sin(), cos(), sqrt(), abs()
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="increase-value" className="text-sm font-medium text-gray-600">
-                      {increaseType === 'amount' ? 'Increase Amount ($)' : 'Increase Percentage (%)'}
-                    </Label>
-                    <Input
-                      id="increase-value"
-                      type="number"
-                      value={increaseValue || ''}
-                      onChange={(e) => setIncreaseValue(Number(e.target.value) || 0)}
-                      placeholder={increaseType === 'amount' ? 'Enter dollar increase' : 'Enter percentage increase'}
-                      step={increaseType === 'percent' ? '0.1' : '1'}
-                      className="text-lg"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium text-gray-600">
-                      Increase Frequency
-                    </Label>
-                    <RadioGroup 
-                      value={increaseFrequency.toString()} 
-                      onValueChange={(value) => setIncreaseFrequency(Number(value))}
-                      className="grid grid-cols-2 gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="1" id="yearly" />
-                        <Label htmlFor="yearly" className="text-sm">Every Year</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="2" id="biennial" />
-                        <Label htmlFor="biennial" className="text-sm">Every 2 Years</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="3" id="triennial" />
-                        <Label htmlFor="triennial" className="text-sm">Every 3 Years</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="4" id="quadrennial" />
-                        <Label htmlFor="quadrennial" className="text-sm">Every 4 Years</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="5" id="quinquennial" />
-                        <Label htmlFor="quinquennial" className="text-sm">Every 5 Years</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="time-period" className="text-sm font-medium text-gray-600">
-                  Time Period (Years)
-                </Label>
-                <Input
-                  id="time-period"
-                  type="number"
-                  value={timePeriod || ''}
-                  onChange={(e) => setTimePeriod(Math.max(1, Number(e.target.value) || 1))}
-                  placeholder="Enter time period"
-                  min="1"
-                  max="50"
-                  className="text-lg"
-                />
-              </div>
-            </div>
-
-            {/* Cash Flow Preview */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700">
-                Generated Cash Flow Preview
-              </Label>
-              <div className="max-h-32 overflow-y-auto space-y-2 bg-gray-50 p-3 rounded-lg">
-                {cashFlows.map((flow) => (
-                  <div key={flow.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600">Year {flow.year}:</span>
-                    <span className="font-medium">
-                      ${flow.amount.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Total Hectares Input */}
-            <div className="space-y-2 pt-4 border-t border-gray-200">
-              <Label htmlFor="total-hectares" className="text-sm font-medium text-gray-700">
-                Total Hectares
-              </Label>
-              <Input
-                id="total-hectares"
-                type="number"
-                value={totalHectares || ''}
-                onChange={(e) => setTotalHectares(Number(e.target.value) || 1)}
-                placeholder="Enter total hectares"
-                min="0.1"
-                step="0.1"
-                className="text-lg"
-              />
-              <p className="text-xs text-gray-500">
-                NPV calculations above are per hectare. Total project value will be calculated below.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Results Section */}
         <ResultsDisplay
