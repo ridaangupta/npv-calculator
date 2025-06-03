@@ -1,12 +1,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import CashFlowConfiguration from './CashFlowConfiguration';
-import CashFlowPreview from './CashFlowPreview';
-import HectaresInput from './HectaresInput';
+import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
-import CurrencyInput from './CurrencyInput';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CashFlow {
@@ -144,49 +140,6 @@ const NPVCalculator = () => {
     return () => clearTimeout(timeoutId);
   }, [calculateNPV]);
 
-  const InputSection = () => (
-    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-      <CardContent className="p-6 space-y-6">
-        <CurrencyInput />
-
-        <div className="space-y-2">
-          <label htmlFor="discount-rate" className="text-sm font-medium text-gray-700">
-            Discount Rate (%)
-          </label>
-          <input
-            id="discount-rate"
-            type="number"
-            value={discountRateInput}
-            onChange={(e) => handleDiscountRateChange(e.target.value)}
-            placeholder="Enter discount rate"
-            step="0.01"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-          />
-        </div>
-
-        <CashFlowConfiguration
-          baseCashFlow={baseCashFlowInput}
-          increaseValue={increaseValueInput}
-          increaseType={increaseType}
-          increaseFrequency={increaseFrequency}
-          timePeriod={timePeriodInput}
-          onBaseCashFlowChange={handleBaseCashFlowChange}
-          onIncreaseValueChange={handleIncreaseValueChange}
-          onIncreaseTypeChange={handleIncreaseTypeChange}
-          onIncreaseFrequencyChange={handleIncreaseFrequencyChange}
-          onTimePeriodChange={handleTimePeriodChange}
-        />
-
-        <CashFlowPreview cashFlows={cashFlows} />
-
-        <HectaresInput
-          totalHectares={totalHectaresInput}
-          onTotalHectaresChange={handleTotalHectaresChange}
-        />
-      </CardContent>
-    </Card>
-  );
-
   if (isMobile) {
     return (
       <div className="max-w-4xl mx-auto space-y-8">
@@ -201,7 +154,23 @@ const NPVCalculator = () => {
           </TabsList>
           
           <TabsContent value="input" className="space-y-6">
-            <InputSection />
+            <InputSection
+              discountRateInput={discountRateInput}
+              baseCashFlowInput={baseCashFlowInput}
+              increaseValueInput={increaseValueInput}
+              increaseType={increaseType}
+              increaseFrequency={increaseFrequency}
+              timePeriodInput={timePeriodInput}
+              totalHectaresInput={totalHectaresInput}
+              cashFlows={cashFlows}
+              onDiscountRateChange={handleDiscountRateChange}
+              onBaseCashFlowChange={handleBaseCashFlowChange}
+              onIncreaseValueChange={handleIncreaseValueChange}
+              onIncreaseTypeChange={handleIncreaseTypeChange}
+              onIncreaseFrequencyChange={handleIncreaseFrequencyChange}
+              onTimePeriodChange={handleTimePeriodChange}
+              onTotalHectaresChange={handleTotalHectaresChange}
+            />
           </TabsContent>
           
           <TabsContent value="output" className="space-y-6">
@@ -227,7 +196,23 @@ const NPVCalculator = () => {
       <div className="grid md:grid-cols-2 gap-8">
         {/* Input Section */}
         <div className="space-y-6">
-          <InputSection />
+          <InputSection
+            discountRateInput={discountRateInput}
+            baseCashFlowInput={baseCashFlowInput}
+            increaseValueInput={increaseValueInput}
+            increaseType={increaseType}
+            increaseFrequency={increaseFrequency}
+            timePeriodInput={timePeriodInput}
+            totalHectaresInput={totalHectaresInput}
+            cashFlows={cashFlows}
+            onDiscountRateChange={handleDiscountRateChange}
+            onBaseCashFlowChange={handleBaseCashFlowChange}
+            onIncreaseValueChange={handleIncreaseValueChange}
+            onIncreaseTypeChange={handleIncreaseTypeChange}
+            onIncreaseFrequencyChange={handleIncreaseFrequencyChange}
+            onTimePeriodChange={handleTimePeriodChange}
+            onTotalHectaresChange={handleTotalHectaresChange}
+          />
         </div>
 
         {/* Results Section */}
