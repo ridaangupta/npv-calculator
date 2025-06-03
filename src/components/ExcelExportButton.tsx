@@ -55,7 +55,7 @@ const ExcelExportButton: React.FC<ExcelExportButtonProps> = ({
         totalNPV: npvPerHectare * totalHectares
       };
       
-      generateExcelReport(exportData);
+      await generateExcelReport(exportData);
     } catch (error) {
       console.error('Error generating Excel report:', error);
     } finally {
