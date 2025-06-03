@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -173,6 +172,10 @@ const NPVCalculator = () => {
               totalHectares={getNumericTotalHectares()}
               discountRate={getNumericDiscountRate()}
               cashFlows={cashFlows}
+              baseCashFlow={getNumericBaseCashFlow()}
+              increaseValue={getNumericIncreaseValue()}
+              increaseType={increaseType}
+              increaseFrequency={increaseFrequency}
             />
           </TabsContent>
         </Tabs>
@@ -180,7 +183,7 @@ const NPVCalculator = () => {
     );
   }
 
-  // Desktop layout remains unchanged
+  // Desktop layout
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="grid md:grid-cols-2 gap-8">
@@ -195,6 +198,10 @@ const NPVCalculator = () => {
           totalHectares={getNumericTotalHectares()}
           discountRate={getNumericDiscountRate()}
           cashFlows={cashFlows}
+          baseCashFlow={getNumericBaseCashFlow()}
+          increaseValue={getNumericIncreaseValue()}
+          increaseType={increaseType}
+          increaseFrequency={increaseFrequency}
         />
       </div>
     </div>

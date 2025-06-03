@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine } from 'lucide-react';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import ExcelExportButton from './ExcelExportButton';
 
 interface CashFlow {
   id: string;
@@ -18,13 +18,21 @@ interface ResultsDisplayProps {
   totalHectares: number;
   discountRate: number;
   cashFlows: CashFlow[];
+  baseCashFlow: number;
+  increaseValue: number;
+  increaseType: 'amount' | 'percent';
+  increaseFrequency: number;
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   npv,
   totalHectares,
   discountRate,
-  cashFlows
+  cashFlows,
+  baseCashFlow,
+  increaseValue,
+  increaseType,
+  increaseFrequency
 }) => {
   const { formatCurrency } = useCurrency();
   const [viewMode, setViewMode] = useState<'table' | 'graph'>('table');
@@ -100,6 +108,37 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <div className="text-sm text-gray-600 mt-2">
               {formatCurrency(npv)} × {totalHectares} hectare{totalHectares !== 1 ? 's' : ''}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Excel Export Button */}
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
+        <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5" />
+            Export Analysis
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="text-center space-y-3">
+            <p className="text-gray-600">
+              Generate a comprehensive Excel report with interactive formulas
+            </p>
+            <p className="text-sm text-gray-500">
+              Modify inputs in Excel and see results update automatically
+            </p>
+            <ExcelExportButton
+              discountRate={discountRate}
+              baseCashFlow={baseCashFlow}
+              increaseValue={increaseValue}
+              increaseType={increaseType}
+              increaseFrequency={increaseFrequency}
+              timePeriod={cashFlows.length}
+              totalHectares={totalHectares}
+              cashFlows={cashFlows}
+              npvPerHectare={npv}
+            />
           </div>
         </CardContent>
       </Card>
