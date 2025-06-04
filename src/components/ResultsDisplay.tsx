@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine, Calculator } from 'lucide-react';
@@ -181,7 +180,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <div className="text-center p-4 bg-emerald-50 rounded-lg">
               <div className="text-sm text-gray-600 mb-1">NPV of Total Period</div>
               <div className="text-xl font-semibold text-emerald-700">
-                {formatCurrency(npv)}
+                {formatCurrency(totalNPV)}
               </div>
             </div>
             
