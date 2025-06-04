@@ -74,11 +74,10 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
 
   const getDisplayAnnualIncrease = useCallback(() => {
     if (increaseType === 'amount') {
-      const usdAnnualIncrease = Number(increaseValue) / increaseFrequency || 0;
-      const displayAnnualIncrease = convertFromUSD(usdAnnualIncrease);
-      return `${selectedCurrency.symbol}${displayAnnualIncrease.toFixed(selectedCurrency.decimalDigits)}/m² per year`;
+      const displayIncrease = convertFromUSD(Number(increaseValue) || 0);
+      return `${selectedCurrency.symbol}${displayIncrease.toFixed(selectedCurrency.decimalDigits)}/m² every ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`;
     } else {
-      return `${(Number(increaseValue) / increaseFrequency || 0).toFixed(2)}% per year`;
+      return `${Number(increaseValue) || 0}% every ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`;
     }
   }, [increaseType, increaseValue, increaseFrequency, convertFromUSD, selectedCurrency]);
 
@@ -177,8 +176,8 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
       <div className="space-y-2">
         <Label htmlFor="increase-value" className="text-sm font-medium text-gray-600">
           {increaseType === 'amount' 
-            ? `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} (${selectedCurrency.symbol}/m² per year)` 
-            : `Total Increase Over ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} (%)`}
+            ? `Increase Amount Every ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} (${selectedCurrency.symbol}/m² per year)` 
+            : `Increase Percentage Every ${increaseFrequency} Year${increaseFrequency > 1 ? 's' : ''} (%)`}
         </Label>
         <div className="relative">
           {increaseType === 'amount' && (
@@ -193,14 +192,14 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
             onChange={handleIncreaseValueInputChange}
             onBlur={handleIncreaseValueBlur}
             placeholder={increaseType === 'amount' 
-              ? `Enter total ${selectedCurrency.symbol}/m² increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
-              : `Enter total % increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`}
+              ? `Enter ${selectedCurrency.symbol}/m² increase every ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
+              : `Enter % increase every ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`}
             step="0.01"
             className={`text-lg ${increaseType === 'amount' ? 'pl-8' : ''}`}
           />
         </div>
         <p className="text-xs text-gray-500">
-          This will be spread evenly over each year ({getDisplayAnnualIncrease()})
+          This increase will be applied discretely at the end of each period ({getDisplayAnnualIncrease()})
         </p>
       </div>
 

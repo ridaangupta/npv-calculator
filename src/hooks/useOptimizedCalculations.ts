@@ -20,7 +20,7 @@ export const useOptimizedCalculations = () => {
     };
   }, []);
 
-  // Memoized cash flow generation
+  // Memoized cash flow generation with discrete increases
   const generateCashFlowsMemoized = useMemo(() => {
     return (
       baseCashFlow: number,
@@ -30,15 +30,15 @@ export const useOptimizedCalculations = () => {
       timePeriod: number
     ) => {
       const generatedFlows: CashFlow[] = [];
-      const annualIncreaseValue = increaseValue / increaseFrequency;
       let currentCashFlowPerM2 = baseCashFlow;
       
       for (let year = 1; year <= timePeriod; year++) {
-        if (year > 1) {
+        // Apply increase discretely at the end of each increase period
+        if (year > 1 && (year - 1) % increaseFrequency === 0) {
           if (increaseType === 'amount') {
-            currentCashFlowPerM2 += annualIncreaseValue;
+            currentCashFlowPerM2 += increaseValue;
           } else if (increaseType === 'percent') {
-            currentCashFlowPerM2 = currentCashFlowPerM2 * (1 + annualIncreaseValue / 100);
+            currentCashFlowPerM2 = currentCashFlowPerM2 * (1 + increaseValue / 100);
           }
         }
         
