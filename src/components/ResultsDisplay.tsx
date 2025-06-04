@@ -202,7 +202,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </div>
             
             <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Total Cash Inflows</div>
+              <div className="text-sm text-gray-600 mb-1">Absolute Value of Total Lease</div>
               <div className="text-xl font-semibold text-orange-700">
                 {formatCurrency(totalCashFlows)}
               </div>
