@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -46,13 +46,21 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const isPositiveTotalNPV = totalNPV > 0;
     const totalCashFlows = cashFlows.reduce((sum, flow) => sum + flow.amount, 0);
     
+    // Calculate upfront prices based on base cash flow
+    const upfrontPricePerSqm = baseCashFlow;
+    const upfrontPricePerHectare = baseCashFlow * 10000; // 1 hectare = 10,000 sqm
+    const upfrontPriceTotal = upfrontPricePerHectare * totalHectares;
+    
     return {
       isPositiveNPV,
       totalNPV,
       isPositiveTotalNPV,
-      totalCashFlows
+      totalCashFlows,
+      upfrontPricePerSqm,
+      upfrontPricePerHectare,
+      upfrontPriceTotal
     };
-  }, [npv, totalHectares, cashFlows]);
+  }, [npv, totalHectares, cashFlows, baseCashFlow]);
 
   // Memoized chart data preparation
   const chartData = useMemo(() => {
@@ -77,52 +85,68 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     },
   };
 
-  const { isPositiveNPV, totalNPV, isPositiveTotalNPV, totalCashFlows } = calculatedValues;
+  const { isPositiveNPV, totalNPV, isPositiveTotalNPV, totalCashFlows, upfrontPricePerSqm, upfrontPricePerHectare, upfrontPriceTotal } = calculatedValues;
 
   return (
     <div className="space-y-6">
-      {/* Per Hectare NPV Result */}
-      <Card className={`shadow-lg border-0 ${isPositiveNPV ? 'bg-gradient-to-br from-green-50 to-emerald-50' : 'bg-gradient-to-br from-red-50 to-rose-50'}`}>
-        <CardHeader className={`${isPositiveNPV ? 'bg-gradient-to-r from-green-600 to-emerald-600' : 'bg-gradient-to-r from-red-600 to-rose-600'} text-white rounded-t-lg`}>
+      {/* Upfront Price Per Square Meter */}
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
           <CardTitle className="flex items-center gap-2">
-            {isPositiveNPV ? (
-              <TrendingUp className="w-5 h-5" />
-            ) : (
-              <TrendingDown className="w-5 h-5" />
-            )}
-            NPV Per Hectare
+            <Calculator className="w-5 h-5" />
+            Upfront Price Per m²
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="text-center">
-            <div className={`text-4xl font-bold mb-2 ${isPositiveNPV ? 'text-green-700' : 'text-red-700'}`}>
-              {formatCurrency(npv)}
+            <div className="text-4xl font-bold mb-2 text-blue-700">
+              {formatCurrency(upfrontPricePerSqm)}
             </div>
-            <div className={`text-lg font-medium ${isPositiveNPV ? 'text-green-600' : 'text-red-600'}`}>
-              {isPositiveNPV ? 'Profitable Per Hectare' : 'Unprofitable Per Hectare'}
+            <div className="text-lg font-medium text-blue-600">
+              Per Square Meter
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Total Project NPV */}
-      <Card className={`shadow-lg border-0 ${isPositiveTotalNPV ? 'bg-gradient-to-br from-blue-50 to-indigo-50' : 'bg-gradient-to-br from-orange-50 to-red-50'}`}>
-        <CardHeader className={`${isPositiveTotalNPV ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-orange-600 to-red-600'} text-white rounded-t-lg`}>
+      {/* Upfront Price Per Hectare */}
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
+        <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg">
           <CardTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5" />
-            Total Project Value
+            <TrendingUp className="w-5 h-5" />
+            Upfront Price Per Hectare
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="text-center">
-            <div className={`text-5xl font-bold mb-2 ${isPositiveTotalNPV ? 'text-blue-700' : 'text-orange-700'}`}>
-              {formatCurrency(totalNPV)}
+            <div className="text-4xl font-bold mb-2 text-green-700">
+              {formatCurrency(upfrontPricePerHectare)}
             </div>
-            <div className={`text-lg font-medium ${isPositiveTotalNPV ? 'text-blue-600' : 'text-orange-600'}`}>
-              {totalHectares} Hectare{totalHectares !== 1 ? 's' : ''} Total
+            <div className="text-lg font-medium text-green-600">
+              Per Hectare (10,000 m²)
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upfront Price for Total Hectares */}
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-violet-50">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Upfront Price for {totalHectares} Hectare{totalHectares !== 1 ? 's' : ''}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <div className="text-5xl font-bold mb-2 text-purple-700">
+              {formatCurrency(upfrontPriceTotal)}
+            </div>
+            <div className="text-lg font-medium text-purple-600">
+              Total Project Cost
             </div>
             <div className="text-sm text-gray-600 mt-2">
-              {formatCurrency(npv)} × {totalHectares} hectare{totalHectares !== 1 ? 's' : ''}
+              {formatCurrency(upfrontPricePerHectare)} × {totalHectares} hectare{totalHectares !== 1 ? 's' : ''}
             </div>
           </div>
         </CardContent>
