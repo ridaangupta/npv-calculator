@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine, Calculator } from 'lucide-react';
@@ -46,10 +45,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const isPositiveTotalNPV = totalNPV > 0;
     const totalCashFlows = cashFlows.reduce((sum, flow) => sum + flow.amount, 0);
     
-    // Calculate upfront prices based on base cash flow
-    const upfrontPricePerSqm = baseCashFlow;
-    const upfrontPricePerHectare = baseCashFlow * 10000; // 1 hectare = 10,000 sqm
-    const upfrontPriceTotal = upfrontPricePerHectare * totalHectares;
+    // Calculate upfront prices based on NPV (sum of all present values)
+    // npv is already the NPV per hectare, so we need to convert to per sqm
+    const upfrontPricePerSqm = npv / 10000; // 1 hectare = 10,000 sqm
+    const upfrontPricePerHectare = npv; // NPV is already per hectare
+    const upfrontPriceTotal = npv * totalHectares; // Total NPV for all hectares
     
     return {
       isPositiveNPV,
@@ -60,7 +60,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       upfrontPricePerHectare,
       upfrontPriceTotal
     };
-  }, [npv, totalHectares, cashFlows, baseCashFlow]);
+  }, [npv, totalHectares, cashFlows]);
 
   // Memoized chart data preparation
   const chartData = useMemo(() => {
@@ -103,7 +103,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               {formatCurrency(upfrontPricePerSqm)}
             </div>
             <div className="text-lg font-medium text-blue-600">
-              Per Square Meter
+              Per Square Meter (NPV)
             </div>
           </div>
         </CardContent>
@@ -123,7 +123,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               {formatCurrency(upfrontPricePerHectare)}
             </div>
             <div className="text-lg font-medium text-green-600">
-              Per Hectare (10,000 m²)
+              Per Hectare (10,000 m² NPV)
             </div>
           </div>
         </CardContent>
@@ -143,7 +143,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               {formatCurrency(upfrontPriceTotal)}
             </div>
             <div className="text-lg font-medium text-purple-600">
-              Total Project Cost
+              Total Project NPV
             </div>
             <div className="text-sm text-gray-600 mt-2">
               {formatCurrency(upfrontPricePerHectare)} × {totalHectares} hectare{totalHectares !== 1 ? 's' : ''}
