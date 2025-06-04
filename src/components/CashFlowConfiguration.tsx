@@ -1,5 +1,5 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -31,6 +31,39 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
   onTimePeriodChange
 }) => {
   const { selectedCurrency, convertFromUSD, convertToUSD } = useCurrency();
+  
+  // Local state for display values during typing
+  const [baseCashFlowDisplay, setBaseCashFlowDisplay] = useState('');
+  const [increaseValueDisplay, setIncreaseValueDisplay] = useState('');
+
+  // Update display values when currency or props change
+  useEffect(() => {
+    if (baseCashFlow === '' || baseCashFlow === '0') {
+      setBaseCashFlowDisplay('');
+    } else {
+      const usdValue = Number(baseCashFlow);
+      if (!isNaN(usdValue)) {
+        setBaseCashFlowDisplay(convertFromUSD(usdValue).toFixed(selectedCurrency.decimalDigits));
+      } else {
+        setBaseCashFlowDisplay(baseCashFlow);
+      }
+    }
+  }, [baseCashFlow, convertFromUSD, selectedCurrency.decimalDigits]);
+
+  useEffect(() => {
+    if (increaseValue === '' || increaseValue === '0') {
+      setIncreaseValueDisplay('');
+    } else if (increaseType === 'percent') {
+      setIncreaseValueDisplay(increaseValue);
+    } else {
+      const usdValue = Number(increaseValue);
+      if (!isNaN(usdValue)) {
+        setIncreaseValueDisplay(convertFromUSD(usdValue).toFixed(selectedCurrency.decimalDigits));
+      } else {
+        setIncreaseValueDisplay(increaseValue);
+      }
+    }
+  }, [increaseValue, increaseType, convertFromUSD, selectedCurrency.decimalDigits]);
 
   const handleBaseCashFlowChange = useCallback((value: string) => {
     onBaseCashFlowChange(value);
@@ -39,21 +72,6 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
   const handleIncreaseValueChange = useCallback((value: string) => {
     onIncreaseValueChange(value);
   }, [onIncreaseValueChange]);
-
-  const getDisplayBaseCashFlow = useCallback(() => {
-    if (baseCashFlow === '' || baseCashFlow === '0') return '';
-    const usdValue = Number(baseCashFlow);
-    if (isNaN(usdValue)) return baseCashFlow;
-    return convertFromUSD(usdValue).toFixed(selectedCurrency.decimalDigits);
-  }, [baseCashFlow, convertFromUSD, selectedCurrency.decimalDigits]);
-
-  const getDisplayIncreaseValue = useCallback(() => {
-    if (increaseValue === '' || increaseValue === '0') return '';
-    if (increaseType === 'percent') return increaseValue;
-    const usdValue = Number(increaseValue);
-    if (isNaN(usdValue)) return increaseValue;
-    return convertFromUSD(usdValue).toFixed(selectedCurrency.decimalDigits);
-  }, [increaseValue, increaseType, convertFromUSD, selectedCurrency.decimalDigits]);
 
   const getDisplayAnnualIncrease = useCallback(() => {
     if (increaseType === 'amount') {
@@ -67,38 +85,45 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
 
   const handleBaseCashFlowInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === '') {
+    setBaseCashFlowDisplay(value);
+  }, []);
+
+  const handleBaseCashFlowBlur = useCallback(() => {
+    if (baseCashFlowDisplay === '') {
       handleBaseCashFlowChange('');
       return;
     }
-    // Store USD value but allow typing in display currency
-    const numericValue = Number(value);
+    const numericValue = Number(baseCashFlowDisplay);
     if (!isNaN(numericValue)) {
       const usdValue = convertToUSD(numericValue);
       handleBaseCashFlowChange(usdValue.toString());
     } else {
-      handleBaseCashFlowChange(value);
+      handleBaseCashFlowChange(baseCashFlowDisplay);
     }
-  }, [handleBaseCashFlowChange, convertToUSD]);
+  }, [baseCashFlowDisplay, handleBaseCashFlowChange, convertToUSD]);
 
   const handleIncreaseValueInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === '') {
+    setIncreaseValueDisplay(value);
+  }, []);
+
+  const handleIncreaseValueBlur = useCallback(() => {
+    if (increaseValueDisplay === '') {
       handleIncreaseValueChange('');
       return;
     }
     if (increaseType === 'amount') {
-      const numericValue = Number(value);
+      const numericValue = Number(increaseValueDisplay);
       if (!isNaN(numericValue)) {
         const usdValue = convertToUSD(numericValue);
         handleIncreaseValueChange(usdValue.toString());
       } else {
-        handleIncreaseValueChange(value);
+        handleIncreaseValueChange(increaseValueDisplay);
       }
     } else {
-      handleIncreaseValueChange(value);
+      handleIncreaseValueChange(increaseValueDisplay);
     }
-  }, [handleIncreaseValueChange, increaseType, convertToUSD]);
+  }, [increaseValueDisplay, handleIncreaseValueChange, increaseType, convertToUSD]);
 
   return (
     <div className="space-y-4">
@@ -117,8 +142,9 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           <Input
             id="base-cash-flow"
             type="number"
-            value={getDisplayBaseCashFlow()}
+            value={baseCashFlowDisplay}
             onChange={handleBaseCashFlowInputChange}
+            onBlur={handleBaseCashFlowBlur}
             placeholder={`Enter initial lease rent per square meter in ${selectedCurrency.code}`}
             step="0.01"
             className="text-lg pl-8"
@@ -164,8 +190,9 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           <Input
             id="increase-value"
             type="number"
-            value={getDisplayIncreaseValue()}
+            value={increaseValueDisplay}
             onChange={handleIncreaseValueInputChange}
+            onBlur={handleIncreaseValueBlur}
             placeholder={increaseType === 'amount' 
               ? `Enter total ${selectedCurrency.symbol}/m² increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}` 
               : `Enter total % increase over ${increaseFrequency} year${increaseFrequency > 1 ? 's' : ''}`}
