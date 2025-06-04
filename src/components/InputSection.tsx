@@ -82,4 +82,30 @@ const InputSection: React.FC<InputSectionProps> = ({
   );
 };
 
-export default InputSection;
+// Custom comparison function for React.memo
+const arePropsEqual = (prevProps: InputSectionProps, nextProps: InputSectionProps) => {
+  return (
+    prevProps.discountRateInput === nextProps.discountRateInput &&
+    prevProps.baseCashFlowInput === nextProps.baseCashFlowInput &&
+    prevProps.increaseValueInput === nextProps.increaseValueInput &&
+    prevProps.increaseType === nextProps.increaseType &&
+    prevProps.increaseFrequency === nextProps.increaseFrequency &&
+    prevProps.timePeriodInput === nextProps.timePeriodInput &&
+    prevProps.totalHectaresInput === nextProps.totalHectaresInput &&
+    prevProps.cashFlows.length === nextProps.cashFlows.length &&
+    prevProps.cashFlows.every((flow, index) => 
+      flow.id === nextProps.cashFlows[index]?.id &&
+      flow.year === nextProps.cashFlows[index]?.year &&
+      flow.amount === nextProps.cashFlows[index]?.amount
+    ) &&
+    prevProps.onDiscountRateChange === nextProps.onDiscountRateChange &&
+    prevProps.onBaseCashFlowChange === nextProps.onBaseCashFlowChange &&
+    prevProps.onIncreaseValueChange === nextProps.onIncreaseValueChange &&
+    prevProps.onIncreaseTypeChange === nextProps.onIncreaseTypeChange &&
+    prevProps.onIncreaseFrequencyChange === nextProps.onIncreaseFrequencyChange &&
+    prevProps.onTimePeriodChange === nextProps.onTimePeriodChange &&
+    prevProps.onTotalHectaresChange === nextProps.onTotalHectaresChange
+  );
+};
+
+export default React.memo(InputSection, arePropsEqual);

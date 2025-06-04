@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useOptimizedCalculations } from '@/hooks/useOptimizedCalculations';
 
 interface CashFlow {
   id: string;
@@ -13,6 +14,8 @@ interface CashFlow {
 
 const NPVCalculator = () => {
   const isMobile = useIsMobile();
+  const { calculateNPVMemoized, generateCashFlowsMemoized } = useOptimizedCalculations();
+  
   // Use string values for input fields to maintain focus
   const [discountRateInput, setDiscountRateInput] = useState<string>('10');
   const [baseCashFlowInput, setBaseCashFlowInput] = useState<string>('0');
@@ -24,31 +27,22 @@ const NPVCalculator = () => {
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [npv, setNpv] = useState<number>(0);
 
-  // Helper functions to get numeric values with fallbacks
-  const getNumericDiscountRate = useCallback(() => {
-    const num = Number(discountRateInput);
-    return isNaN(num) || num < 0 ? 0 : num;
-  }, [discountRateInput]);
+  // Memoized numeric value parsing with early returns for invalid values
+  const numericValues = useMemo(() => {
+    const discountRate = Math.max(0, Number(discountRateInput) || 0);
+    const baseCashFlow = Math.max(0, Number(baseCashFlowInput) || 0);
+    const increaseValue = Math.max(0, Number(increaseValueInput) || 0);
+    const timePeriod = Math.max(1, Number(timePeriodInput) || 1);
+    const totalHectares = Math.max(1, Number(totalHectaresInput) || 1);
 
-  const getNumericBaseCashFlow = useCallback(() => {
-    const num = Number(baseCashFlowInput);
-    return isNaN(num) || num < 0 ? 0 : num;
-  }, [baseCashFlowInput]);
-
-  const getNumericIncreaseValue = useCallback(() => {
-    const num = Number(increaseValueInput);
-    return isNaN(num) || num < 0 ? 0 : num;
-  }, [increaseValueInput]);
-
-  const getNumericTimePeriod = useCallback(() => {
-    const num = Number(timePeriodInput);
-    return isNaN(num) || num <= 0 ? 1 : num;
-  }, [timePeriodInput]);
-
-  const getNumericTotalHectares = useCallback(() => {
-    const num = Number(totalHectaresInput);
-    return isNaN(num) || num <= 0 ? 1 : num;
-  }, [totalHectaresInput]);
+    return {
+      discountRate,
+      baseCashFlow,
+      increaseValue,
+      timePeriod,
+      totalHectares
+    };
+  }, [discountRateInput, baseCashFlowInput, increaseValueInput, timePeriodInput, totalHectaresInput]);
 
   // Memoized change handlers to prevent re-renders
   const handleDiscountRateChange = useCallback((value: string) => {
@@ -79,66 +73,48 @@ const NPVCalculator = () => {
     setTotalHectaresInput(value);
   }, []);
 
-  // Generate cash flows with debounced calculation
+  // Generate cash flows with optimized debouncing (reduced from 300ms to 150ms)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const generatedFlows: CashFlow[] = [];
-      const numericTimePeriod = getNumericTimePeriod();
-      const numericBaseCashFlow = getNumericBaseCashFlow();
-      const numericIncreaseValue = getNumericIncreaseValue();
+      const { baseCashFlow, increaseValue, timePeriod } = numericValues;
       
-      // Calculate equivalent annual increase by spreading over frequency period
-      const annualIncreaseValue = numericIncreaseValue / increaseFrequency;
-      let currentCashFlowPerM2 = numericBaseCashFlow;
-      
-      for (let year = 1; year <= numericTimePeriod; year++) {
-        // Apply the equivalent annual increase every year (except year 1)
-        if (year > 1) {
-          if (increaseType === 'amount') {
-            currentCashFlowPerM2 += annualIncreaseValue;
-          } else if (increaseType === 'percent') {
-            currentCashFlowPerM2 = currentCashFlowPerM2 * (1 + annualIncreaseValue / 100);
-          }
-        }
-        
-        // Convert from per m² to per hectare (multiply by 10,000)
-        const currentCashFlowPerHectare = currentCashFlowPerM2 * 10000;
-        
-        // Round to 2 decimal places
-        const roundedCashFlow = Math.round(currentCashFlowPerHectare * 100) / 100;
-        
-        generatedFlows.push({
-          id: year.toString(),
-          year: year,
-          amount: Math.max(0, roundedCashFlow)
-        });
+      // Early return for invalid inputs
+      if (baseCashFlow < 0 || increaseValue < 0 || timePeriod <= 0) {
+        setCashFlows([]);
+        return;
       }
+
+      const generatedFlows = generateCashFlowsMemoized(
+        baseCashFlow,
+        increaseValue,
+        increaseType,
+        increaseFrequency,
+        timePeriod
+      );
       
       setCashFlows(generatedFlows);
-    }, 300); // 300ms debounce
+    }, 150); // Reduced debounce from 300ms to 150ms
 
     return () => clearTimeout(timeoutId);
-  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, getNumericTimePeriod, getNumericBaseCashFlow, getNumericIncreaseValue]);
+  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, numericValues, generateCashFlowsMemoized]);
 
-  const calculateNPV = useCallback(() => {
-    let npvValue = 0;
-    const numericDiscountRate = getNumericDiscountRate();
-    
-    cashFlows.forEach(flow => {
-      const presentValue = flow.amount / Math.pow(1 + numericDiscountRate / 100, flow.year);
-      npvValue += presentValue;
-    });
-    
-    setNpv(npvValue);
-  }, [getNumericDiscountRate, cashFlows]);
-
+  // Memoized NPV calculation with optimized debouncing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      calculateNPV();
-    }, 300); // 300ms debounce
+      const { discountRate } = numericValues;
+      
+      // Early return for invalid inputs
+      if (cashFlows.length === 0 || discountRate < 0) {
+        setNpv(0);
+        return;
+      }
+
+      const npvValue = calculateNPVMemoized(cashFlows, discountRate);
+      setNpv(npvValue);
+    }, 150); // Reduced debounce from 300ms to 150ms
 
     return () => clearTimeout(timeoutId);
-  }, [calculateNPV]);
+  }, [cashFlows, numericValues.discountRate, calculateNPVMemoized]);
 
   if (isMobile) {
     return (
@@ -176,11 +152,11 @@ const NPVCalculator = () => {
           <TabsContent value="output" className="space-y-6">
             <ResultsDisplay
               npv={npv}
-              totalHectares={getNumericTotalHectares()}
-              discountRate={getNumericDiscountRate()}
+              totalHectares={numericValues.totalHectares}
+              discountRate={numericValues.discountRate}
               cashFlows={cashFlows}
-              baseCashFlow={getNumericBaseCashFlow()}
-              increaseValue={getNumericIncreaseValue()}
+              baseCashFlow={numericValues.baseCashFlow}
+              increaseValue={numericValues.increaseValue}
               increaseType={increaseType}
               increaseFrequency={increaseFrequency}
             />
@@ -218,11 +194,11 @@ const NPVCalculator = () => {
         {/* Results Section */}
         <ResultsDisplay
           npv={npv}
-          totalHectares={getNumericTotalHectares()}
-          discountRate={getNumericDiscountRate()}
+          totalHectares={numericValues.totalHectares}
+          discountRate={numericValues.discountRate}
           cashFlows={cashFlows}
-          baseCashFlow={getNumericBaseCashFlow()}
-          increaseValue={getNumericIncreaseValue()}
+          baseCashFlow={numericValues.baseCashFlow}
+          increaseValue={numericValues.increaseValue}
           increaseType={increaseType}
           increaseFrequency={increaseFrequency}
         />

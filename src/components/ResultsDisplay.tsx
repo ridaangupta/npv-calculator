@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,20 +39,32 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const { formatCurrency } = useCurrency();
   const [viewMode, setViewMode] = useState<'table' | 'graph'>('table');
   
-  const isPositiveNPV = npv > 0;
-  const totalNPV = npv * totalHectares;
-  const isPositiveTotalNPV = totalNPV > 0;
-  const totalCashFlows = cashFlows.reduce((sum, flow) => sum + flow.amount, 0);
-
-  // Prepare chart data
-  const chartData = cashFlows.map((flow) => {
-    const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
+  // Memoized calculations to prevent recalculation on every render
+  const calculatedValues = useMemo(() => {
+    const isPositiveNPV = npv > 0;
+    const totalNPV = npv * totalHectares;
+    const isPositiveTotalNPV = totalNPV > 0;
+    const totalCashFlows = cashFlows.reduce((sum, flow) => sum + flow.amount, 0);
+    
     return {
-      year: flow.year,
-      presentValue: presentValue,
-      futureValue: flow.amount,
+      isPositiveNPV,
+      totalNPV,
+      isPositiveTotalNPV,
+      totalCashFlows
     };
-  });
+  }, [npv, totalHectares, cashFlows]);
+
+  // Memoized chart data preparation
+  const chartData = useMemo(() => {
+    return cashFlows.map((flow) => {
+      const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
+      return {
+        year: flow.year,
+        presentValue: presentValue,
+        futureValue: flow.amount,
+      };
+    });
+  }, [cashFlows, discountRate]);
 
   const chartConfig = {
     presentValue: {
@@ -63,6 +76,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       color: "#3b82f6", // blue-500
     },
   };
+
+  const { isPositiveNPV, totalNPV, isPositiveTotalNPV, totalCashFlows } = calculatedValues;
 
   return (
     <div className="space-y-6">
@@ -272,4 +287,23 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   );
 };
 
-export default ResultsDisplay;
+// Custom comparison function for React.memo
+const arePropsEqual = (prevProps: ResultsDisplayProps, nextProps: ResultsDisplayProps) => {
+  return (
+    prevProps.npv === nextProps.npv &&
+    prevProps.totalHectares === nextProps.totalHectares &&
+    prevProps.discountRate === nextProps.discountRate &&
+    prevProps.baseCashFlow === nextProps.baseCashFlow &&
+    prevProps.increaseValue === nextProps.increaseValue &&
+    prevProps.increaseType === nextProps.increaseType &&
+    prevProps.increaseFrequency === nextProps.increaseFrequency &&
+    prevProps.cashFlows.length === nextProps.cashFlows.length &&
+    prevProps.cashFlows.every((flow, index) => 
+      flow.id === nextProps.cashFlows[index]?.id &&
+      flow.year === nextProps.cashFlows[index]?.year &&
+      flow.amount === nextProps.cashFlows[index]?.amount
+    )
+  );
+};
+
+export default React.memo(ResultsDisplay, arePropsEqual);

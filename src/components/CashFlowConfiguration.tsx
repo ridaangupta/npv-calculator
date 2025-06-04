@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -256,4 +255,20 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
   );
 };
 
-export default CashFlowConfiguration;
+// Custom comparison function for React.memo
+const arePropsEqual = (prevProps: CashFlowConfigurationProps, nextProps: CashFlowConfigurationProps) => {
+  return (
+    prevProps.baseCashFlow === nextProps.baseCashFlow &&
+    prevProps.increaseValue === nextProps.increaseValue &&
+    prevProps.increaseType === nextProps.increaseType &&
+    prevProps.increaseFrequency === nextProps.increaseFrequency &&
+    prevProps.timePeriod === nextProps.timePeriod &&
+    prevProps.onBaseCashFlowChange === nextProps.onBaseCashFlowChange &&
+    prevProps.onIncreaseValueChange === nextProps.onIncreaseValueChange &&
+    prevProps.onIncreaseTypeChange === nextProps.onIncreaseTypeChange &&
+    prevProps.onIncreaseFrequencyChange === nextProps.onIncreaseFrequencyChange &&
+    prevProps.onTimePeriodChange === nextProps.onTimePeriodChange
+  );
+};
+
+export default React.memo(CashFlowConfiguration, arePropsEqual);

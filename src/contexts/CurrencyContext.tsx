@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 
 export interface Currency {
   code: string;
@@ -11,6 +11,11 @@ export interface Currency {
 
 interface ExchangeRates {
   [key: string]: number;
+}
+
+interface CachedRates {
+  rates: ExchangeRates;
+  timestamp: number;
 }
 
 interface CurrencyContextType {
@@ -37,6 +42,9 @@ const currencies: Currency[] = [
   { code: 'ZAR', name: 'South African Rand', symbol: 'R', symbolNative: 'R', decimalDigits: 2 },
 ];
 
+const CACHE_KEY = 'npv_calculator_exchange_rates';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 export const useCurrency = () => {
@@ -57,17 +65,53 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+  // Load cached exchange rates
+  const loadCachedRates = () => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const cachedData: CachedRates = JSON.parse(cached);
+        const now = Date.now();
+        
+        // Check if cache is still valid (within 24 hours)
+        if (now - cachedData.timestamp < CACHE_DURATION) {
+          setExchangeRates(cachedData.rates);
+          setLastUpdated(new Date(cachedData.timestamp));
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load cached exchange rates:', error);
+    }
+    return false;
+  };
+
+  // Save exchange rates to cache
+  const saveCachedRates = (rates: ExchangeRates) => {
+    try {
+      const cacheData: CachedRates = {
+        rates,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Failed to save exchange rates to cache:', error);
+    }
+  };
+
   const fetchExchangeRates = async () => {
     setIsLoading(true);
     try {
       const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
       const data = await response.json();
-      setExchangeRates({ USD: 1, ...data.rates });
+      const newRates = { USD: 1, ...data.rates };
+      setExchangeRates(newRates);
       setLastUpdated(new Date());
+      saveCachedRates(newRates);
     } catch (error) {
       console.error('Failed to fetch exchange rates:', error);
       // Fallback rates (approximate)
-      setExchangeRates({
+      const fallbackRates = {
         USD: 1,
         EUR: 0.85,
         AED: 3.67,
@@ -77,37 +121,49 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
         CAD: 1.25,
         NGN: 460,
         ZAR: 15.5,
-      });
+      };
+      setExchangeRates(fallbackRates);
       setLastUpdated(new Date());
+      saveCachedRates(fallbackRates);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchExchangeRates();
+    // Try to load from cache first, if failed or expired, fetch new rates
+    if (!loadCachedRates()) {
+      fetchExchangeRates();
+    }
   }, []);
 
-  const convertFromUSD = (amount: number): number => {
-    const rate = exchangeRates[selectedCurrency.code] || 1;
-    return amount * rate;
-  };
+  // Memoized conversion functions to prevent recreation on every render
+  const convertFromUSD = useMemo(() => {
+    return (amount: number): number => {
+      const rate = exchangeRates[selectedCurrency.code] || 1;
+      return amount * rate;
+    };
+  }, [exchangeRates, selectedCurrency.code]);
 
-  const convertToUSD = (amount: number): number => {
-    const rate = exchangeRates[selectedCurrency.code] || 1;
-    return amount / rate;
-  };
+  const convertToUSD = useMemo(() => {
+    return (amount: number): number => {
+      const rate = exchangeRates[selectedCurrency.code] || 1;
+      return amount / rate;
+    };
+  }, [exchangeRates, selectedCurrency.code]);
 
-  const formatCurrency = (amount: number): string => {
-    const convertedAmount = convertFromUSD(amount);
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: selectedCurrency.code,
-      minimumFractionDigits: selectedCurrency.decimalDigits,
-      maximumFractionDigits: selectedCurrency.decimalDigits,
-      currencyDisplay: 'symbol'
-    }).format(convertedAmount).replace(/[A-Z]{3}/, selectedCurrency.symbol);
-  };
+  const formatCurrency = useMemo(() => {
+    return (amount: number): string => {
+      const convertedAmount = convertFromUSD(amount);
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: selectedCurrency.code,
+        minimumFractionDigits: selectedCurrency.decimalDigits,
+        maximumFractionDigits: selectedCurrency.decimalDigits,
+        currencyDisplay: 'symbol'
+      }).format(convertedAmount).replace(/[A-Z]{3}/, selectedCurrency.symbol);
+    };
+  }, [convertFromUSD, selectedCurrency]);
 
   return (
     <CurrencyContext.Provider
