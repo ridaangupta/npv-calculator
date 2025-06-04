@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine, Calculator } from 'lucide-react';
@@ -152,6 +153,48 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </CardContent>
       </Card>
 
+      {/* Summary Statistics - moved above export */}
+      <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5" />
+            Cash Flow Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className="text-sm text-gray-600 mb-1">Discount Rate</div>
+              <div className="text-xl font-semibold text-purple-700 flex items-center justify-center gap-1">
+                {discountRate.toFixed(1)}
+                <Percent className="w-4 h-4" />
+              </div>
+            </div>
+            
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="text-sm text-gray-600 mb-1">Absolute Value of Total Lease</div>
+              <div className="text-xl font-semibold text-orange-700">
+                {formatCurrency(totalCashFlows)}
+              </div>
+            </div>
+            
+            <div className="text-center p-4 bg-emerald-50 rounded-lg">
+              <div className="text-sm text-gray-600 mb-1">NPV of Total Period</div>
+              <div className="text-xl font-semibold text-emerald-700">
+                {formatCurrency(npv)}
+              </div>
+            </div>
+            
+            <div className="text-center p-4 bg-indigo-50 rounded-lg">
+              <div className="text-sm text-gray-600 mb-1">Years Analyzed</div>
+              <div className="text-xl font-semibold text-indigo-700">
+                {cashFlows.length} Year{cashFlows.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Excel Export Button */}
       <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
         <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg">
@@ -179,41 +222,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               cashFlows={cashFlows}
               npvPerHectare={npv}
             />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Summary Statistics */}
-      <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5" />
-            Cash Flow Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Discount Rate</div>
-              <div className="text-xl font-semibold text-purple-700 flex items-center justify-center gap-1">
-                {discountRate.toFixed(1)}
-                <Percent className="w-4 h-4" />
-              </div>
-            </div>
-            
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-sm text-gray-600 mb-1">Absolute Value of Total Lease</div>
-              <div className="text-xl font-semibold text-orange-700">
-                {formatCurrency(totalCashFlows)}
-              </div>
-            </div>
-            
-            <div className="text-center p-4 bg-indigo-50 rounded-lg col-span-2">
-              <div className="text-sm text-gray-600 mb-1">Years Analyzed</div>
-              <div className="text-xl font-semibold text-indigo-700">
-                {cashFlows.length} Year{cashFlows.length !== 1 ? 's' : ''}
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
