@@ -1,11 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { PaymentInstallment, PaymentSchedule } from '@/types/PaymentSchedule';
-import PaymentInstallmentCard from './PaymentInstallmentCard';
 import PaymentScheduleSummary from './PaymentScheduleSummary';
+import PaymentScheduleHeader from './PaymentScheduleHeader';
+import PaymentScheduleEmpty from './PaymentScheduleEmpty';
+import PaymentScheduleList from './PaymentScheduleList';
 
 interface UpfrontPaymentSchedulerProps {
   totalNPV: number;
@@ -100,40 +100,13 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   return (
     <div className="w-full space-y-4">
       <Card className="shadow-lg border-0 bg-white">
-        <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Custom Payment Schedule
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={addInstallment}
-                size="sm"
-                variant="ghost"
-                className="text-white hover:bg-white/20"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Payment
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="text-white hover:bg-white/20"
-              >
-                {isExpanded ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-          </CardTitle>
-        </CardHeader>
+        <PaymentScheduleHeader
+          onAddInstallment={addInstallment}
+          isExpanded={isExpanded}
+          onToggleExpanded={() => setIsExpanded(!isExpanded)}
+        />
         
         <CardContent className="p-6">
-          {/* Summary Section */}
           <PaymentScheduleSummary
             totalNPV={totalNPV}
             paymentSchedule={paymentSchedule}
@@ -143,45 +116,19 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
             isValid={calculatedValues.isValid}
           />
 
-          {/* Installments Section */}
           {isExpanded && (
             <div className="mt-6 space-y-4">
               {paymentSchedule.installments.length === 0 ? (
-                <Card className="border-dashed border-2 border-gray-300">
-                  <CardContent className="p-8 text-center">
-                    <div className="text-gray-500">
-                      <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <h3 className="text-lg font-medium mb-2">No Payment Installments</h3>
-                      <p className="text-sm mb-4">
-                        Create custom payment installments to structure your upfront payment schedule.
-                      </p>
-                      <Button onClick={addInstallment} className="flex items-center gap-2">
-                        <Plus className="w-4 h-4" />
-                        Add First Payment
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <PaymentScheduleEmpty onAddInstallment={addInstallment} />
               ) : (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      Payment Installments ({paymentSchedule.installments.length})
-                    </h4>
-                  </div>
-                  
-                  {paymentSchedule.installments.map((installment) => (
-                    <PaymentInstallmentCard
-                      key={installment.id}
-                      installment={installment}
-                      totalNPV={totalNPV}
-                      onUpdateAmount={updateInstallmentAmount}
-                      onUpdatePercentage={updateInstallmentPercentage}
-                      onUpdateDate={updateInstallmentDate}
-                      onRemove={removeInstallment}
-                    />
-                  ))}
-                </div>
+                <PaymentScheduleList
+                  installments={paymentSchedule.installments}
+                  totalNPV={totalNPV}
+                  onUpdateAmount={updateInstallmentAmount}
+                  onUpdatePercentage={updateInstallmentPercentage}
+                  onUpdateDate={updateInstallmentDate}
+                  onRemove={removeInstallment}
+                />
               )}
             </div>
           )}
