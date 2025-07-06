@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 import { PaymentInstallment } from '@/types/PaymentSchedule';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -32,11 +32,15 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
   // Separate state for editing vs display
   const [amountEditValue, setAmountEditValue] = useState(installment.amountDue.toString());
   const [percentageEditValue, setPercentageEditValue] = useState(installment.percentageOfDeal.toString());
+  const [dateEditValue, setDateEditValue] = useState(format(installment.paymentDate, 'dd/MM/yyyy'));
   const [isAmountFocused, setIsAmountFocused] = useState(false);
   const [isPercentageFocused, setIsPercentageFocused] = useState(false);
+  const [isDateFocused, setIsDateFocused] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
   const amountInputRef = useRef<HTMLInputElement>(null);
   const percentageInputRef = useRef<HTMLInputElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   // Update edit values when installment changes (from external updates)
   useEffect(() => {
@@ -50,6 +54,12 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
       setPercentageEditValue(installment.percentageOfDeal.toString());
     }
   }, [installment.percentageOfDeal, isPercentageFocused]);
+
+  useEffect(() => {
+    if (!isDateFocused) {
+      setDateEditValue(format(installment.paymentDate, 'dd/MM/yyyy'));
+    }
+  }, [installment.paymentDate, isDateFocused]);
 
   const handleAmountFocus = () => {
     setIsAmountFocused(true);
@@ -81,6 +91,49 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
 
   const handlePercentageChange = (value: string) => {
     setPercentageEditValue(value);
+  };
+
+  const handleDateFocus = () => {
+    setIsDateFocused(true);
+  };
+
+  const handleDateBlur = () => {
+    setIsDateFocused(false);
+    // Try to parse the entered date
+    const parsedDate = parse(dateEditValue, 'dd/MM/yyyy', new Date());
+    if (isValid(parsedDate)) {
+      onUpdateDate(installment.id, parsedDate);
+    } else {
+      // Reset to current date if invalid
+      setDateEditValue(format(installment.paymentDate, 'dd/MM/yyyy'));
+    }
+  };
+
+  const handleDateChange = (value: string) => {
+    // Allow only numbers and slashes
+    const cleanValue = value.replace(/[^\d/]/g, '');
+    // Auto-format as user types
+    let formattedValue = cleanValue;
+    if (cleanValue.length >= 2 && cleanValue.charAt(2) !== '/') {
+      formattedValue = cleanValue.slice(0, 2) + '/' + cleanValue.slice(2);
+    }
+    if (cleanValue.length >= 5 && cleanValue.charAt(5) !== '/') {
+      const parts = formattedValue.split('/');
+      if (parts.length >= 2) {
+        formattedValue = parts[0] + '/' + parts[1] + '/' + cleanValue.slice(5);
+      }
+    }
+    // Limit to dd/mm/yyyy format
+    if (formattedValue.length <= 10) {
+      setDateEditValue(formattedValue);
+    }
+  };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      onUpdateDate(installment.id, date);
+      setIsCalendarOpen(false);
+    }
   };
 
   const getAmountDisplayValue = () => {
@@ -120,25 +173,43 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
             <label className="block text-sm font-medium text-gray-700">
               Payment Date
             </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal h-12"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(installment.paymentDate, 'MMM dd, yyyy')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={installment.paymentDate}
-                  onSelect={(date) => date && onUpdateDate(installment.id, date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="space-y-2">
+              <Input
+                ref={dateInputRef}
+                type="text"
+                placeholder="dd/mm/yyyy"
+                value={isDateFocused ? dateEditValue : format(installment.paymentDate, 'dd/MM/yyyy')}
+                onChange={(e) => handleDateChange(e.target.value)}
+                onFocus={handleDateFocus}
+                onBlur={handleDateBlur}
+                className="h-12 text-base font-medium"
+              />
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal h-10"
+                    onClick={() => setIsCalendarOpen(true)}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(installment.paymentDate, 'MMM dd, yyyy')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={installment.paymentDate}
+                    onSelect={handleCalendarSelect}
+                    initialFocus
+                    defaultMonth={installment.paymentDate}
+                    captionLayout="dropdown-buttons"
+                    fromYear={1900}
+                    toYear={2100}
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           {/* Amount Due */}
