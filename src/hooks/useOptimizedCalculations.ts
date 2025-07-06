@@ -1,4 +1,5 @@
 
+
 import { useMemo } from 'react';
 
 interface CashFlow {
@@ -8,12 +9,31 @@ interface CashFlow {
 }
 
 export const useOptimizedCalculations = () => {
-  // Memoized NPV calculation
+  // Memoized NPV calculation with payment timing
   const calculateNPVMemoized = useMemo(() => {
-    return (cashFlows: CashFlow[], discountRate: number) => {
+    return (cashFlows: CashFlow[], discountRate: number, paymentTiming: 'beginning' | 'middle' | 'end' = 'end') => {
       let npvValue = 0;
       cashFlows.forEach(flow => {
-        const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
+        let adjustedYear = flow.year;
+        
+        // Adjust the year based on payment timing
+        switch (paymentTiming) {
+          case 'beginning':
+            adjustedYear = flow.year - 1;
+            break;
+          case 'middle':
+            adjustedYear = flow.year - 0.5;
+            break;
+          case 'end':
+          default:
+            adjustedYear = flow.year;
+            break;
+        }
+        
+        // Ensure we don't have negative years for beginning of first year
+        adjustedYear = Math.max(0, adjustedYear);
+        
+        const presentValue = flow.amount / Math.pow(1 + discountRate / 100, adjustedYear);
         npvValue += presentValue;
       });
       return npvValue;
@@ -61,3 +81,4 @@ export const useOptimizedCalculations = () => {
     generateCashFlowsMemoized
   };
 };
+

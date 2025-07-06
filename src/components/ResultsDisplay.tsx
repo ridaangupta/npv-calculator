@@ -1,7 +1,8 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine, Calculator } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine, Calculator, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -23,6 +24,7 @@ interface ResultsDisplayProps {
   increaseValue: number;
   increaseType: 'amount' | 'percent';
   increaseFrequency: number;
+  paymentTiming: 'beginning' | 'middle' | 'end';
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
@@ -33,7 +35,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   baseCashFlow,
   increaseValue,
   increaseType,
-  increaseFrequency
+  increaseFrequency,
+  paymentTiming
 }) => {
   const { formatCurrency } = useCurrency();
   const [viewMode, setViewMode] = useState<'table' | 'graph'>('table');
@@ -65,14 +68,32 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   // Memoized chart data preparation
   const chartData = useMemo(() => {
     return cashFlows.map((flow) => {
-      const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
+      let adjustedYear = flow.year;
+      
+      // Apply the same timing adjustment as in calculations
+      switch (paymentTiming) {
+        case 'beginning':
+          adjustedYear = flow.year - 1;
+          break;
+        case 'middle':
+          adjustedYear = flow.year - 0.5;
+          break;
+        case 'end':
+        default:
+          adjustedYear = flow.year;
+          break;
+      }
+      
+      adjustedYear = Math.max(0, adjustedYear);
+      const presentValue = flow.amount / Math.pow(1 + discountRate / 100, adjustedYear);
+      
       return {
         year: flow.year,
         presentValue: presentValue,
         futureValue: flow.amount,
       };
     });
-  }, [cashFlows, discountRate]);
+  }, [cashFlows, discountRate, paymentTiming]);
 
   const chartConfig = {
     presentValue: {
@@ -83,6 +104,19 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       label: "Future Value",
       color: "#3b82f6", // blue-500
     },
+  };
+
+  const getTimingDisplayName = () => {
+    switch (paymentTiming) {
+      case 'beginning':
+        return 'Beginning of Year';
+      case 'middle':
+        return 'Middle of Year';
+      case 'end':
+        return 'End of Year';
+      default:
+        return 'End of Year';
+    }
   };
 
   const { isPositiveNPV, totalNPV, isPositiveTotalNPV, totalCashFlows, upfrontPricePerSqm, upfrontPricePerHectare, upfrontPriceTotal } = calculatedValues;
@@ -170,6 +204,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               </div>
             </div>
             
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-sm text-gray-600 mb-1">Payment Timing</div>
+              <div className="text-lg font-semibold text-blue-700 flex items-center justify-center gap-1">
+                <Clock className="w-4 h-4" />
+                {getTimingDisplayName()}
+              </div>
+            </div>
+            
             <div className="text-center p-4 bg-orange-50 rounded-lg">
               <div className="text-sm text-gray-600 mb-1">Absolute Value of Total Lease</div>
               <div className="text-xl font-semibold text-orange-700">
@@ -184,7 +226,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               </div>
             </div>
             
-            <div className="text-center p-4 bg-indigo-50 rounded-lg">
+            <div className="text-center p-4 bg-indigo-50 rounded-lg col-span-2">
               <div className="text-sm text-gray-600 mb-1">Years Analyzed</div>
               <div className="text-xl font-semibold text-indigo-700">
                 {cashFlows.length} Year{cashFlows.length !== 1 ? 's' : ''}
@@ -224,7 +266,25 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           {viewMode === 'table' ? (
             <div className="space-y-3">
               {cashFlows.map((flow) => {
-                const presentValue = flow.amount / Math.pow(1 + discountRate / 100, flow.year);
+                let adjustedYear = flow.year;
+                
+                // Apply the same timing adjustment as in calculations
+                switch (paymentTiming) {
+                  case 'beginning':
+                    adjustedYear = flow.year - 1;
+                    break;
+                  case 'middle':
+                    adjustedYear = flow.year - 0.5;
+                    break;
+                  case 'end':
+                  default:
+                    adjustedYear = flow.year;
+                    break;
+                }
+                
+                adjustedYear = Math.max(0, adjustedYear);
+                const presentValue = flow.amount / Math.pow(1 + discountRate / 100, adjustedYear);
+                
                 return (
                   <div key={flow.id} className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                     <span className="font-medium text-gray-700">Year {flow.year}</span>
@@ -297,6 +357,7 @@ const arePropsEqual = (prevProps: ResultsDisplayProps, nextProps: ResultsDisplay
     prevProps.increaseValue === nextProps.increaseValue &&
     prevProps.increaseType === nextProps.increaseType &&
     prevProps.increaseFrequency === nextProps.increaseFrequency &&
+    prevProps.paymentTiming === nextProps.paymentTiming &&
     prevProps.cashFlows.length === nextProps.cashFlows.length &&
     prevProps.cashFlows.every((flow, index) => 
       flow.id === nextProps.cashFlows[index]?.id &&
@@ -307,3 +368,4 @@ const arePropsEqual = (prevProps: ResultsDisplayProps, nextProps: ResultsDisplay
 };
 
 export default React.memo(ResultsDisplay, arePropsEqual);
+

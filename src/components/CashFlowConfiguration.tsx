@@ -10,11 +10,13 @@ interface CashFlowConfigurationProps {
   increaseType: 'amount' | 'percent';
   increaseFrequency: number;
   timePeriod: string;
+  paymentTiming: 'beginning' | 'middle' | 'end';
   onBaseCashFlowChange: (value: string) => void;
   onIncreaseValueChange: (value: string) => void;
   onIncreaseTypeChange: (value: 'amount' | 'percent') => void;
   onIncreaseFrequencyChange: (value: number) => void;
   onTimePeriodChange: (value: string) => void;
+  onPaymentTimingChange: (value: 'beginning' | 'middle' | 'end') => void;
 }
 
 const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
@@ -23,11 +25,13 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
   increaseType,
   increaseFrequency,
   timePeriod,
+  paymentTiming,
   onBaseCashFlowChange,
   onIncreaseValueChange,
   onIncreaseTypeChange,
   onIncreaseFrequencyChange,
-  onTimePeriodChange
+  onTimePeriodChange,
+  onPaymentTimingChange
 }) => {
   const { selectedCurrency, convertFromUSD, convertToUSD } = useCurrency();
   
@@ -250,6 +254,33 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
           className="text-lg"
         />
       </div>
+
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-gray-600">
+          Payment Timing
+        </Label>
+        <RadioGroup 
+          value={paymentTiming} 
+          onValueChange={onPaymentTimingChange}
+          className="space-y-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="beginning" id="beginning" />
+            <Label htmlFor="beginning" className="text-sm">Beginning of Year</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="middle" id="middle" />
+            <Label htmlFor="middle" className="text-sm">Middle of Year</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="end" id="end" />
+            <Label htmlFor="end" className="text-sm">End of Year</Label>
+          </div>
+        </RadioGroup>
+        <p className="text-xs text-gray-500">
+          Payment timing affects the present value calculation. Beginning of year payments are worth more due to less discounting.
+        </p>
+      </div>
     </div>
   );
 };
@@ -262,11 +293,13 @@ const arePropsEqual = (prevProps: CashFlowConfigurationProps, nextProps: CashFlo
     prevProps.increaseType === nextProps.increaseType &&
     prevProps.increaseFrequency === nextProps.increaseFrequency &&
     prevProps.timePeriod === nextProps.timePeriod &&
+    prevProps.paymentTiming === nextProps.paymentTiming &&
     prevProps.onBaseCashFlowChange === nextProps.onBaseCashFlowChange &&
     prevProps.onIncreaseValueChange === nextProps.onIncreaseValueChange &&
     prevProps.onIncreaseTypeChange === nextProps.onIncreaseTypeChange &&
     prevProps.onIncreaseFrequencyChange === nextProps.onIncreaseFrequencyChange &&
-    prevProps.onTimePeriodChange === nextProps.onTimePeriodChange
+    prevProps.onTimePeriodChange === nextProps.onTimePeriodChange &&
+    prevProps.onPaymentTimingChange === nextProps.onPaymentTimingChange
   );
 };
 

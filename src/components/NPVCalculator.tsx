@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InputSection from './InputSection';
@@ -24,6 +23,7 @@ const NPVCalculator = () => {
   const [increaseFrequency, setIncreaseFrequency] = useState<number>(1);
   const [timePeriodInput, setTimePeriodInput] = useState<string>('5');
   const [totalHectaresInput, setTotalHectaresInput] = useState<string>('1');
+  const [paymentTiming, setPaymentTiming] = useState<'beginning' | 'middle' | 'end'>('end');
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [npv, setNpv] = useState<number>(0);
 
@@ -73,6 +73,10 @@ const NPVCalculator = () => {
     setTotalHectaresInput(value);
   }, []);
 
+  const handlePaymentTimingChange = useCallback((value: 'beginning' | 'middle' | 'end') => {
+    setPaymentTiming(value);
+  }, []);
+
   // Generate cash flows with optimized debouncing (reduced from 300ms to 150ms)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -98,7 +102,7 @@ const NPVCalculator = () => {
     return () => clearTimeout(timeoutId);
   }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, numericValues, generateCashFlowsMemoized]);
 
-  // Memoized NPV calculation with optimized debouncing
+  // Memoized NPV calculation with payment timing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const { discountRate } = numericValues;
@@ -109,12 +113,12 @@ const NPVCalculator = () => {
         return;
       }
 
-      const npvValue = calculateNPVMemoized(cashFlows, discountRate);
+      const npvValue = calculateNPVMemoized(cashFlows, discountRate, paymentTiming);
       setNpv(npvValue);
     }, 150); // Reduced debounce from 300ms to 150ms
 
     return () => clearTimeout(timeoutId);
-  }, [cashFlows, numericValues.discountRate, calculateNPVMemoized]);
+  }, [cashFlows, numericValues.discountRate, paymentTiming, calculateNPVMemoized]);
 
   if (isMobile) {
     return (
@@ -138,6 +142,7 @@ const NPVCalculator = () => {
               increaseFrequency={increaseFrequency}
               timePeriodInput={timePeriodInput}
               totalHectaresInput={totalHectaresInput}
+              paymentTiming={paymentTiming}
               cashFlows={cashFlows}
               onDiscountRateChange={handleDiscountRateChange}
               onBaseCashFlowChange={handleBaseCashFlowChange}
@@ -146,6 +151,7 @@ const NPVCalculator = () => {
               onIncreaseFrequencyChange={handleIncreaseFrequencyChange}
               onTimePeriodChange={handleTimePeriodChange}
               onTotalHectaresChange={handleTotalHectaresChange}
+              onPaymentTimingChange={handlePaymentTimingChange}
             />
           </TabsContent>
           
@@ -159,6 +165,7 @@ const NPVCalculator = () => {
               increaseValue={numericValues.increaseValue}
               increaseType={increaseType}
               increaseFrequency={increaseFrequency}
+              paymentTiming={paymentTiming}
             />
           </TabsContent>
         </Tabs>
@@ -180,6 +187,7 @@ const NPVCalculator = () => {
             increaseFrequency={increaseFrequency}
             timePeriodInput={timePeriodInput}
             totalHectaresInput={totalHectaresInput}
+            paymentTiming={paymentTiming}
             cashFlows={cashFlows}
             onDiscountRateChange={handleDiscountRateChange}
             onBaseCashFlowChange={handleBaseCashFlowChange}
@@ -188,6 +196,7 @@ const NPVCalculator = () => {
             onIncreaseFrequencyChange={handleIncreaseFrequencyChange}
             onTimePeriodChange={handleTimePeriodChange}
             onTotalHectaresChange={handleTotalHectaresChange}
+            onPaymentTimingChange={handlePaymentTimingChange}
           />
         </div>
 
@@ -201,6 +210,7 @@ const NPVCalculator = () => {
           increaseValue={numericValues.increaseValue}
           increaseType={increaseType}
           increaseFrequency={increaseFrequency}
+          paymentTiming={paymentTiming}
         />
       </div>
     </div>

@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import CurrencyInput from './CurrencyInput';
@@ -21,6 +22,7 @@ interface InputSectionProps {
   increaseFrequency: number;
   timePeriodInput: string;
   totalHectaresInput: string;
+  paymentTiming: 'beginning' | 'middle' | 'end';
   cashFlows: CashFlow[];
   onDiscountRateChange: (value: string) => void;
   onBaseCashFlowChange: (value: string) => void;
@@ -29,6 +31,7 @@ interface InputSectionProps {
   onIncreaseFrequencyChange: (value: number) => void;
   onTimePeriodChange: (value: string) => void;
   onTotalHectaresChange: (value: string) => void;
+  onPaymentTimingChange: (value: 'beginning' | 'middle' | 'end') => void;
 }
 
 const InputSection: React.FC<InputSectionProps> = ({
@@ -39,6 +42,7 @@ const InputSection: React.FC<InputSectionProps> = ({
   increaseFrequency,
   timePeriodInput,
   totalHectaresInput,
+  paymentTiming,
   cashFlows,
   onDiscountRateChange,
   onBaseCashFlowChange,
@@ -46,7 +50,8 @@ const InputSection: React.FC<InputSectionProps> = ({
   onIncreaseTypeChange,
   onIncreaseFrequencyChange,
   onTimePeriodChange,
-  onTotalHectaresChange
+  onTotalHectaresChange,
+  onPaymentTimingChange
 }) => {
   return (
     <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
@@ -64,11 +69,13 @@ const InputSection: React.FC<InputSectionProps> = ({
           increaseType={increaseType}
           increaseFrequency={increaseFrequency}
           timePeriod={timePeriodInput}
+          paymentTiming={paymentTiming}
           onBaseCashFlowChange={onBaseCashFlowChange}
           onIncreaseValueChange={onIncreaseValueChange}
           onIncreaseTypeChange={onIncreaseTypeChange}
           onIncreaseFrequencyChange={onIncreaseFrequencyChange}
           onTimePeriodChange={onTimePeriodChange}
+          onPaymentTimingChange={onPaymentTimingChange}
         />
 
         <CashFlowPreview cashFlows={cashFlows} />
@@ -92,6 +99,7 @@ const arePropsEqual = (prevProps: InputSectionProps, nextProps: InputSectionProp
     prevProps.increaseFrequency === nextProps.increaseFrequency &&
     prevProps.timePeriodInput === nextProps.timePeriodInput &&
     prevProps.totalHectaresInput === nextProps.totalHectaresInput &&
+    prevProps.paymentTiming === nextProps.paymentTiming &&
     prevProps.cashFlows.length === nextProps.cashFlows.length &&
     prevProps.cashFlows.every((flow, index) => 
       flow.id === nextProps.cashFlows[index]?.id &&
@@ -104,8 +112,10 @@ const arePropsEqual = (prevProps: InputSectionProps, nextProps: InputSectionProp
     prevProps.onIncreaseTypeChange === nextProps.onIncreaseTypeChange &&
     prevProps.onIncreaseFrequencyChange === nextProps.onIncreaseFrequencyChange &&
     prevProps.onTimePeriodChange === nextProps.onTimePeriodChange &&
-    prevProps.onTotalHectaresChange === nextProps.onTotalHectaresChange
+    prevProps.onTotalHectaresChange === nextProps.onTotalHectaresChange &&
+    prevProps.onPaymentTimingChange === nextProps.onPaymentTimingChange
   );
 };
 
 export default React.memo(InputSection, arePropsEqual);
+
