@@ -4,6 +4,7 @@ import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useOptimizedCalculations } from '@/hooks/useOptimizedCalculations';
+import { PaymentSchedule } from '@/types/PaymentSchedule';
 
 interface CashFlow {
   id: string;
@@ -26,6 +27,12 @@ const NPVCalculator = () => {
   const [paymentTiming, setPaymentTiming] = useState<'beginning' | 'middle' | 'end'>('end');
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [npv, setNpv] = useState<number>(0);
+  const [paymentSchedule, setPaymentSchedule] = useState<PaymentSchedule>({
+    installments: [],
+    totalPercentage: 0,
+    totalAmount: 0,
+    remainingAmount: 0
+  });
 
   // Memoized numeric value parsing with early returns for invalid values
   const numericValues = useMemo(() => {
@@ -75,6 +82,10 @@ const NPVCalculator = () => {
 
   const handlePaymentTimingChange = useCallback((value: 'beginning' | 'middle' | 'end') => {
     setPaymentTiming(value);
+  }, []);
+
+  const handlePaymentScheduleChange = useCallback((schedule: PaymentSchedule) => {
+    setPaymentSchedule(schedule);
   }, []);
 
   // Generate cash flows with optimized debouncing (reduced from 300ms to 150ms)
@@ -166,6 +177,8 @@ const NPVCalculator = () => {
               increaseType={increaseType}
               increaseFrequency={increaseFrequency}
               paymentTiming={paymentTiming}
+              paymentSchedule={paymentSchedule}
+              onPaymentScheduleChange={handlePaymentScheduleChange}
             />
           </TabsContent>
         </Tabs>
@@ -211,6 +224,8 @@ const NPVCalculator = () => {
           increaseType={increaseType}
           increaseFrequency={increaseFrequency}
           paymentTiming={paymentTiming}
+          paymentSchedule={paymentSchedule}
+          onPaymentScheduleChange={handlePaymentScheduleChange}
         />
       </div>
     </div>

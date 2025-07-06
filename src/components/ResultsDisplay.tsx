@@ -8,6 +8,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { PaymentSchedule } from '@/types/PaymentSchedule';
+import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
 
 interface CashFlow {
   id: string;
@@ -25,6 +27,8 @@ interface ResultsDisplayProps {
   increaseType: 'amount' | 'percent';
   increaseFrequency: number;
   paymentTiming: 'beginning' | 'middle' | 'end';
+  paymentSchedule: PaymentSchedule;
+  onPaymentScheduleChange: (schedule: PaymentSchedule) => void;
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
@@ -36,7 +40,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   increaseValue,
   increaseType,
   increaseFrequency,
-  paymentTiming
+  paymentTiming,
+  paymentSchedule,
+  onPaymentScheduleChange
 }) => {
   const { formatCurrency } = useCurrency();
   const [viewMode, setViewMode] = useState<'table' | 'graph'>('table');
@@ -236,6 +242,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </CardContent>
       </Card>
 
+      {/* Custom Payment Schedule */}
+      <UpfrontPaymentScheduler
+        totalNPV={upfrontPriceTotal}
+        paymentSchedule={paymentSchedule}
+        onUpdateSchedule={onPaymentScheduleChange}
+      />
+
       {/* Cash Flow Breakdown */}
       <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-t-lg">
@@ -358,6 +371,8 @@ const arePropsEqual = (prevProps: ResultsDisplayProps, nextProps: ResultsDisplay
     prevProps.increaseType === nextProps.increaseType &&
     prevProps.increaseFrequency === nextProps.increaseFrequency &&
     prevProps.paymentTiming === nextProps.paymentTiming &&
+    prevProps.paymentSchedule === nextProps.paymentSchedule &&
+    prevProps.onPaymentScheduleChange === nextProps.onPaymentScheduleChange &&
     prevProps.cashFlows.length === nextProps.cashFlows.length &&
     prevProps.cashFlows.every((flow, index) => 
       flow.id === nextProps.cashFlows[index]?.id &&
