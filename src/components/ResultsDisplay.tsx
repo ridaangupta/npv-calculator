@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, MapPin, Table, ChartLine, Calculator } from 'lucide-react';
@@ -6,7 +7,6 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import ExcelExportButton from './ExcelExportButton';
 
 interface CashFlow {
   id: string;
@@ -152,7 +152,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </CardContent>
       </Card>
 
-      {/* Summary Statistics - moved above export */}
+      {/* Summary Statistics */}
       <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-t-lg">
           <CardTitle className="flex items-center gap-2">
@@ -190,37 +190,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 {cashFlows.length} Year{cashFlows.length !== 1 ? 's' : ''}
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Excel Export Button */}
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-green-50 to-emerald-50">
-        <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg">
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5" />
-            Export Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="text-center space-y-3">
-            <p className="text-gray-600">
-              Generate a comprehensive Excel report with interactive formulas
-            </p>
-            <p className="text-sm text-gray-500">
-              Modify inputs in Excel and see results update automatically
-            </p>
-            <ExcelExportButton
-              discountRate={discountRate}
-              baseCashFlow={baseCashFlow}
-              increaseValue={increaseValue}
-              increaseType={increaseType}
-              increaseFrequency={increaseFrequency}
-              timePeriod={cashFlows.length}
-              totalHectares={totalHectares}
-              cashFlows={cashFlows}
-              npvPerHectare={npv}
-            />
           </div>
         </CardContent>
       </Card>
