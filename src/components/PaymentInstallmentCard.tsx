@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -202,9 +201,6 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
                     onSelect={handleCalendarSelect}
                     initialFocus
                     defaultMonth={installment.paymentDate}
-                    captionLayout="dropdown-buttons"
-                    fromYear={1900}
-                    toYear={2100}
                     className="pointer-events-auto"
                   />
                 </PopoverContent>
