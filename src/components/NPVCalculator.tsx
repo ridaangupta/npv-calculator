@@ -5,6 +5,7 @@ import ResultsDisplay from './ResultsDisplay';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useOptimizedCalculations } from '@/hooks/useOptimizedCalculations';
 import { PaymentSchedule } from '@/types/PaymentSchedule';
+import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
 
 interface CashFlow {
   id: string;
@@ -135,11 +136,14 @@ const NPVCalculator = () => {
     return (
       <div className="max-w-4xl mx-auto space-y-8">
         <Tabs defaultValue="input" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="input" className="text-sm font-medium">
               Input
             </TabsTrigger>
-            <TabsTrigger value="output" className="text-sm font-medium">
+            <TabsTrigger value="schedule" className="text-sm font-medium">
+              Schedule
+            </TabsTrigger>
+            <TabsTrigger value="results" className="text-sm font-medium">
               Results
             </TabsTrigger>
           </TabsList>
@@ -165,8 +169,16 @@ const NPVCalculator = () => {
               onPaymentTimingChange={handlePaymentTimingChange}
             />
           </TabsContent>
+
+          <TabsContent value="schedule" className="space-y-6">
+            <UpfrontPaymentScheduler
+              totalNPV={npv * numericValues.totalHectares}
+              paymentSchedule={paymentSchedule}
+              onUpdateSchedule={handlePaymentScheduleChange}
+            />
+          </TabsContent>
           
-          <TabsContent value="output" className="space-y-6">
+          <TabsContent value="results" className="space-y-6">
             <ResultsDisplay
               npv={npv}
               totalHectares={numericValues.totalHectares}
@@ -188,7 +200,7 @@ const NPVCalculator = () => {
 
   // Desktop layout
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8">
       <div className="grid md:grid-cols-2 gap-8">
         {/* Input Section */}
         <div className="space-y-6">
@@ -226,6 +238,15 @@ const NPVCalculator = () => {
           paymentTiming={paymentTiming}
           paymentSchedule={paymentSchedule}
           onPaymentScheduleChange={handlePaymentScheduleChange}
+        />
+      </div>
+
+      {/* Payment Schedule Section - Full Width Below */}
+      <div className="w-full">
+        <UpfrontPaymentScheduler
+          totalNPV={npv * numericValues.totalHectares}
+          paymentSchedule={paymentSchedule}
+          onUpdateSchedule={handlePaymentScheduleChange}
         />
       </div>
     </div>
