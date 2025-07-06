@@ -84,17 +84,19 @@ export const useNPVCalculatorLogic = () => {
     setPaymentSchedule(schedule);
   }, []);
 
-  // Generate cash flows with optimized debouncing (reduced from 300ms to 150ms)
+  // Optimize the main calculation hook - combine debounced effects
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const { baseCashFlow, increaseValue, timePeriod } = numericValues;
+      const { baseCashFlow, increaseValue, timePeriod, discountRate } = numericValues;
       
       // Early return for invalid inputs
       if (baseCashFlow < 0 || increaseValue < 0 || timePeriod <= 0) {
         setCashFlows([]);
+        setNpv(0);
         return;
       }
 
+      // Generate cash flows
       const generatedFlows = generateCashFlowsMemoized(
         baseCashFlow,
         increaseValue,
@@ -104,28 +106,18 @@ export const useNPVCalculatorLogic = () => {
       );
       
       setCashFlows(generatedFlows);
-    }, 150); // Reduced debounce from 300ms to 150ms
 
-    return () => clearTimeout(timeoutId);
-  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, numericValues, generateCashFlowsMemoized]);
-
-  // Memoized NPV calculation with payment timing
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const { discountRate } = numericValues;
-      
-      // Early return for invalid inputs
-      if (cashFlows.length === 0 || discountRate < 0) {
+      // Calculate NPV immediately after generating flows
+      if (generatedFlows.length > 0 && discountRate >= 0) {
+        const npvValue = calculateNPVMemoized(generatedFlows, discountRate, paymentTiming);
+        setNpv(npvValue);
+      } else {
         setNpv(0);
-        return;
       }
-
-      const npvValue = calculateNPVMemoized(cashFlows, discountRate, paymentTiming);
-      setNpv(npvValue);
-    }, 150); // Reduced debounce from 300ms to 150ms
+    }, 100); // Reduced debounce further to 100ms
 
     return () => clearTimeout(timeoutId);
-  }, [cashFlows, numericValues.discountRate, paymentTiming, calculateNPVMemoized]);
+  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, discountRateInput, paymentTiming, numericValues, generateCashFlowsMemoized, calculateNPVMemoized]);
 
   return {
     // State values

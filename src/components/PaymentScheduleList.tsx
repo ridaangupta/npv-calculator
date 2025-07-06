@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { PaymentInstallment } from '@/types/PaymentSchedule';
-import PaymentInstallmentCard from './PaymentInstallmentCard';
+import PaymentScheduleListMemo from './PaymentScheduleListMemo';
 
 interface PaymentScheduleListProps {
   installments: PaymentInstallment[];
@@ -12,35 +12,8 @@ interface PaymentScheduleListProps {
   onRemove: (id: string) => void;
 }
 
-const PaymentScheduleList: React.FC<PaymentScheduleListProps> = ({
-  installments,
-  totalNPV,
-  onUpdateAmount,
-  onUpdatePercentage,
-  onUpdateDate,
-  onRemove
-}) => {
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h4 className="text-lg font-semibold text-gray-800">
-          Payment Installments ({installments.length})
-        </h4>
-      </div>
-      
-      {installments.map((installment) => (
-        <PaymentInstallmentCard
-          key={installment.id}
-          installment={installment}
-          totalNPV={totalNPV}
-          onUpdateAmount={onUpdateAmount}
-          onUpdatePercentage={onUpdatePercentage}
-          onUpdateDate={onUpdateDate}
-          onRemove={onRemove}
-        />
-      ))}
-    </div>
-  );
+const PaymentScheduleList: React.FC<PaymentScheduleListProps> = (props) => {
+  return <PaymentScheduleListMemo {...props} />;
 };
 
 export default PaymentScheduleList;

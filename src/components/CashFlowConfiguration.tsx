@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, memo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -39,19 +39,25 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
   const [baseCashFlowDisplay, setBaseCashFlowDisplay] = useState('');
   const [increaseValueDisplay, setIncreaseValueDisplay] = useState('');
 
-  // Update display values when currency or props change
+  // Memoized currency conversions to prevent recalculation on every render
+  const memoizedConversions = useMemo(() => {
+    const baseCashFlowNum = Number(baseCashFlow);
+    const increaseValueNum = Number(increaseValue);
+    
+    return {
+      baseCashFlowConverted: !isNaN(baseCashFlowNum) ? convertFromUSD(baseCashFlowNum) : 0,
+      increaseValueConverted: !isNaN(increaseValueNum) && increaseType === 'amount' ? convertFromUSD(increaseValueNum) : increaseValueNum
+    };
+  }, [baseCashFlow, increaseValue, increaseType, convertFromUSD]);
+
+  // Update display values when currency or props change  
   useEffect(() => {
     if (baseCashFlow === '' || baseCashFlow === '0') {
       setBaseCashFlowDisplay('');
     } else {
-      const usdValue = Number(baseCashFlow);
-      if (!isNaN(usdValue)) {
-        setBaseCashFlowDisplay(convertFromUSD(usdValue).toFixed(selectedCurrency.decimalDigits));
-      } else {
-        setBaseCashFlowDisplay(baseCashFlow);
-      }
+      setBaseCashFlowDisplay(memoizedConversions.baseCashFlowConverted.toFixed(selectedCurrency.decimalDigits));
     }
-  }, [baseCashFlow, convertFromUSD, selectedCurrency.decimalDigits]);
+  }, [baseCashFlow, memoizedConversions.baseCashFlowConverted, selectedCurrency.decimalDigits]);
 
   useEffect(() => {
     if (increaseValue === '' || increaseValue === '0') {
@@ -59,14 +65,9 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
     } else if (increaseType === 'percent') {
       setIncreaseValueDisplay(increaseValue);
     } else {
-      const usdValue = Number(increaseValue);
-      if (!isNaN(usdValue)) {
-        setIncreaseValueDisplay(convertFromUSD(usdValue).toFixed(selectedCurrency.decimalDigits));
-      } else {
-        setIncreaseValueDisplay(increaseValue);
-      }
+      setIncreaseValueDisplay(memoizedConversions.increaseValueConverted.toFixed(selectedCurrency.decimalDigits));
     }
-  }, [increaseValue, increaseType, convertFromUSD, selectedCurrency.decimalDigits]);
+  }, [increaseValue, increaseType, memoizedConversions.increaseValueConverted, selectedCurrency.decimalDigits]);
 
   const handleBaseCashFlowChange = useCallback((value: string) => {
     onBaseCashFlowChange(value);

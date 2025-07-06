@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ interface PaymentInstallmentCardProps {
   onRemove: (id: string) => void;
 }
 
-const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
+const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
   installment,
   totalNPV,
   onUpdateAmount,
@@ -28,90 +28,85 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
 }) => {
   const { formatCurrency } = useCurrency();
   
-  // Separate state for editing vs display
-  const [amountEditValue, setAmountEditValue] = useState(installment.amountDue.toString());
-  const [percentageEditValue, setPercentageEditValue] = useState(installment.percentageOfDeal.toString());
-  const [dateEditValue, setDateEditValue] = useState(format(installment.paymentDate, 'dd/MM/yyyy'));
-  const [isAmountFocused, setIsAmountFocused] = useState(false);
-  const [isPercentageFocused, setIsPercentageFocused] = useState(false);
-  const [isDateFocused, setIsDateFocused] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  // Combined state for better performance
+  const [editState, setEditState] = useState({
+    amountValue: installment.amountDue.toString(),
+    percentageValue: installment.percentageOfDeal.toString(),
+    dateValue: format(installment.paymentDate, 'dd/MM/yyyy'),
+    isAmountFocused: false,
+    isPercentageFocused: false,
+    isDateFocused: false,
+    isCalendarOpen: false
+  });
   
   const amountInputRef = useRef<HTMLInputElement>(null);
   const percentageInputRef = useRef<HTMLInputElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  // Update edit values when installment changes (from external updates)
+  // Single useEffect to handle all external updates
   useEffect(() => {
-    if (!isAmountFocused) {
-      setAmountEditValue(installment.amountDue.toString());
-    }
-  }, [installment.amountDue, isAmountFocused]);
+    setEditState(prev => ({
+      ...prev,
+      amountValue: prev.isAmountFocused ? prev.amountValue : installment.amountDue.toString(),
+      percentageValue: prev.isPercentageFocused ? prev.percentageValue : installment.percentageOfDeal.toString(),
+      dateValue: prev.isDateFocused ? prev.dateValue : format(installment.paymentDate, 'dd/MM/yyyy')
+    }));
+  }, [installment.amountDue, installment.percentageOfDeal, installment.paymentDate]);
 
-  useEffect(() => {
-    if (!isPercentageFocused) {
-      setPercentageEditValue(installment.percentageOfDeal.toString());
-    }
-  }, [installment.percentageOfDeal, isPercentageFocused]);
+  // Memoized handlers for better performance
+  const handleAmountFocus = useCallback(() => {
+    setEditState(prev => ({
+      ...prev,
+      isAmountFocused: true,
+      amountValue: installment.amountDue.toString()
+    }));
+  }, [installment.amountDue]);
 
-  useEffect(() => {
-    if (!isDateFocused) {
-      setDateEditValue(format(installment.paymentDate, 'dd/MM/yyyy'));
-    }
-  }, [installment.paymentDate, isDateFocused]);
-
-  const handleAmountFocus = () => {
-    setIsAmountFocused(true);
-    setAmountEditValue(installment.amountDue.toString());
-  };
-
-  const handleAmountBlur = () => {
-    setIsAmountFocused(false);
-    const amount = parseFloat(amountEditValue) || 0;
+  const handleAmountBlur = useCallback(() => {
+    const amount = parseFloat(editState.amountValue) || 0;
+    setEditState(prev => ({ ...prev, isAmountFocused: false }));
     onUpdateAmount(installment.id, amount);
-  };
+  }, [editState.amountValue, installment.id, onUpdateAmount]);
 
-  const handleAmountChange = (value: string) => {
-    // Allow only numbers and decimal point
+  const handleAmountChange = useCallback((value: string) => {
     const cleanValue = value.replace(/[^\d.]/g, '');
-    setAmountEditValue(cleanValue);
-  };
+    setEditState(prev => ({ ...prev, amountValue: cleanValue }));
+  }, []);
 
-  const handlePercentageFocus = () => {
-    setIsPercentageFocused(true);
-    setPercentageEditValue(installment.percentageOfDeal.toString());
-  };
+  const handlePercentageFocus = useCallback(() => {
+    setEditState(prev => ({
+      ...prev,
+      isPercentageFocused: true,
+      percentageValue: installment.percentageOfDeal.toString()
+    }));
+  }, [installment.percentageOfDeal]);
 
-  const handlePercentageBlur = () => {
-    setIsPercentageFocused(false);
-    const percentage = parseFloat(percentageEditValue) || 0;
+  const handlePercentageBlur = useCallback(() => {
+    const percentage = parseFloat(editState.percentageValue) || 0;
+    setEditState(prev => ({ ...prev, isPercentageFocused: false }));
     onUpdatePercentage(installment.id, Math.min(100, Math.max(0, percentage)));
-  };
+  }, [editState.percentageValue, installment.id, onUpdatePercentage]);
 
-  const handlePercentageChange = (value: string) => {
-    setPercentageEditValue(value);
-  };
+  const handlePercentageChange = useCallback((value: string) => {
+    setEditState(prev => ({ ...prev, percentageValue: value }));
+  }, []);
 
-  const handleDateFocus = () => {
-    setIsDateFocused(true);
-  };
+  const handleDateFocus = useCallback(() => {
+    setEditState(prev => ({ ...prev, isDateFocused: true }));
+  }, []);
 
-  const handleDateBlur = () => {
-    setIsDateFocused(false);
-    // Try to parse the entered date
-    const parsedDate = parse(dateEditValue, 'dd/MM/yyyy', new Date());
+  const handleDateBlur = useCallback(() => {
+    const parsedDate = parse(editState.dateValue, 'dd/MM/yyyy', new Date());
+    setEditState(prev => ({ ...prev, isDateFocused: false }));
     if (isValid(parsedDate)) {
       onUpdateDate(installment.id, parsedDate);
     } else {
-      // Reset to current date if invalid
-      setDateEditValue(format(installment.paymentDate, 'dd/MM/yyyy'));
+      setEditState(prev => ({ ...prev, dateValue: format(installment.paymentDate, 'dd/MM/yyyy') }));
     }
-  };
+  }, [editState.dateValue, installment.id, installment.paymentDate, onUpdateDate]);
 
-  const handleDateChange = (value: string) => {
-    // Allow only numbers and slashes
+  const handleDateChange = useCallback((value: string) => {
     const cleanValue = value.replace(/[^\d/]/g, '');
-    // Auto-format as user types
     let formattedValue = cleanValue;
     if (cleanValue.length >= 2 && cleanValue.charAt(2) !== '/') {
       formattedValue = cleanValue.slice(0, 2) + '/' + cleanValue.slice(2);
@@ -122,32 +117,30 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
         formattedValue = parts[0] + '/' + parts[1] + '/' + cleanValue.slice(5);
       }
     }
-    // Limit to dd/mm/yyyy format
     if (formattedValue.length <= 10) {
-      setDateEditValue(formattedValue);
+      setEditState(prev => ({ ...prev, dateValue: formattedValue }));
     }
-  };
+  }, []);
 
-  const handleCalendarSelect = (date: Date | undefined) => {
+  const handleCalendarSelect = useCallback((date: Date | undefined) => {
     if (date) {
       onUpdateDate(installment.id, date);
-      setIsCalendarOpen(false);
+      setEditState(prev => ({ ...prev, isCalendarOpen: false }));
     }
-  };
+  }, [installment.id, onUpdateDate]);
 
-  const getAmountDisplayValue = () => {
-    if (isAmountFocused) {
-      return amountEditValue;
-    }
-    return installment.amountDue.toLocaleString('en-US', { maximumFractionDigits: 2 });
-  };
+  // Memoized display values
+  const amountDisplayValue = editState.isAmountFocused 
+    ? editState.amountValue 
+    : installment.amountDue.toLocaleString('en-US', { maximumFractionDigits: 2 });
 
-  const getPercentageDisplayValue = () => {
-    if (isPercentageFocused) {
-      return percentageEditValue;
-    }
-    return installment.percentageOfDeal.toFixed(1);
-  };
+  const percentageDisplayValue = editState.isPercentageFocused 
+    ? editState.percentageValue 
+    : installment.percentageOfDeal.toFixed(1);
+
+  const dateDisplayValue = editState.isDateFocused 
+    ? editState.dateValue 
+    : format(installment.paymentDate, 'dd/MM/yyyy');
 
   return (
     <Card className="relative bg-white border border-gray-200 hover:shadow-md transition-shadow">
@@ -177,18 +170,18 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
                 ref={dateInputRef}
                 type="text"
                 placeholder="dd/mm/yyyy"
-                value={isDateFocused ? dateEditValue : format(installment.paymentDate, 'dd/MM/yyyy')}
+                value={dateDisplayValue}
                 onChange={(e) => handleDateChange(e.target.value)}
                 onFocus={handleDateFocus}
                 onBlur={handleDateBlur}
                 className="h-12 text-base font-medium"
               />
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+              <Popover open={editState.isCalendarOpen} onOpenChange={(open) => setEditState(prev => ({ ...prev, isCalendarOpen: open }))}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className="w-full justify-start text-left font-normal h-10"
-                    onClick={() => setIsCalendarOpen(true)}
+                    onClick={() => setEditState(prev => ({ ...prev, isCalendarOpen: true }))}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {format(installment.paymentDate, 'MMM dd, yyyy')}
@@ -218,13 +211,13 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
                 ref={amountInputRef}
                 type="text"
                 placeholder="Enter amount"
-                value={getAmountDisplayValue()}
+                value={amountDisplayValue}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 onFocus={handleAmountFocus}
                 onBlur={handleAmountBlur}
                 className="h-12 text-base font-medium"
               />
-              {!isAmountFocused && (
+              {!editState.isAmountFocused && (
                 <div className="text-xs text-green-600 font-medium px-2">
                   {formatCurrency(installment.amountDue)}
                 </div>
@@ -246,7 +239,7 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
                   max="100"
                   step="0.1"
                   placeholder="0.0"
-                  value={getPercentageDisplayValue()}
+                  value={percentageDisplayValue}
                   onChange={(e) => handlePercentageChange(e.target.value)}
                   onFocus={handlePercentageFocus}
                   onBlur={handlePercentageBlur}
@@ -256,7 +249,7 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
                   %
                 </span>
               </div>
-              {!isPercentageFocused && (
+              {!editState.isPercentageFocused && (
                 <div className="text-xs text-blue-600 font-medium px-2">
                   {installment.percentageOfDeal.toFixed(2)}% of total
                 </div>
@@ -267,6 +260,6 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
 
 export default PaymentInstallmentCard;
