@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,20 +28,73 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
   onRemove
 }) => {
   const { formatCurrency } = useCurrency();
+  
+  // Separate state for editing vs display
+  const [amountEditValue, setAmountEditValue] = useState(installment.amountDue.toString());
+  const [percentageEditValue, setPercentageEditValue] = useState(installment.percentageOfDeal.toString());
+  const [isAmountFocused, setIsAmountFocused] = useState(false);
+  const [isPercentageFocused, setIsPercentageFocused] = useState(false);
+  
+  const amountInputRef = useRef<HTMLInputElement>(null);
+  const percentageInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAmountChange = (value: string) => {
-    const cleanValue = value.replace(/[^\d.]/g, '');
-    const amount = parseFloat(cleanValue) || 0;
+  // Update edit values when installment changes (from external updates)
+  useEffect(() => {
+    if (!isAmountFocused) {
+      setAmountEditValue(installment.amountDue.toString());
+    }
+  }, [installment.amountDue, isAmountFocused]);
+
+  useEffect(() => {
+    if (!isPercentageFocused) {
+      setPercentageEditValue(installment.percentageOfDeal.toString());
+    }
+  }, [installment.percentageOfDeal, isPercentageFocused]);
+
+  const handleAmountFocus = () => {
+    setIsAmountFocused(true);
+    setAmountEditValue(installment.amountDue.toString());
+  };
+
+  const handleAmountBlur = () => {
+    setIsAmountFocused(false);
+    const amount = parseFloat(amountEditValue) || 0;
     onUpdateAmount(installment.id, amount);
   };
 
-  const handlePercentageChange = (value: string) => {
-    const percentage = parseFloat(value) || 0;
-    onUpdatePercentage(installment.id, percentage);
+  const handleAmountChange = (value: string) => {
+    // Allow only numbers and decimal point
+    const cleanValue = value.replace(/[^\d.]/g, '');
+    setAmountEditValue(cleanValue);
   };
 
-  const formatNumberInput = (value: number) => {
-    return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const handlePercentageFocus = () => {
+    setIsPercentageFocused(true);
+    setPercentageEditValue(installment.percentageOfDeal.toString());
+  };
+
+  const handlePercentageBlur = () => {
+    setIsPercentageFocused(false);
+    const percentage = parseFloat(percentageEditValue) || 0;
+    onUpdatePercentage(installment.id, Math.min(100, Math.max(0, percentage)));
+  };
+
+  const handlePercentageChange = (value: string) => {
+    setPercentageEditValue(value);
+  };
+
+  const getAmountDisplayValue = () => {
+    if (isAmountFocused) {
+      return amountEditValue;
+    }
+    return installment.amountDue.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  };
+
+  const getPercentageDisplayValue = () => {
+    if (isPercentageFocused) {
+      return percentageEditValue;
+    }
+    return installment.percentageOfDeal.toFixed(1);
   };
 
   return (
@@ -95,15 +148,20 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
             </label>
             <div className="space-y-2">
               <Input
+                ref={amountInputRef}
                 type="text"
                 placeholder="Enter amount"
-                value={formatNumberInput(installment.amountDue)}
+                value={getAmountDisplayValue()}
                 onChange={(e) => handleAmountChange(e.target.value)}
+                onFocus={handleAmountFocus}
+                onBlur={handleAmountBlur}
                 className="h-12 text-base font-medium"
               />
-              <div className="text-xs text-green-600 font-medium px-2">
-                {formatCurrency(installment.amountDue)}
-              </div>
+              {!isAmountFocused && (
+                <div className="text-xs text-green-600 font-medium px-2">
+                  {formatCurrency(installment.amountDue)}
+                </div>
+              )}
             </div>
           </div>
 
@@ -115,22 +173,27 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = ({
             <div className="space-y-2">
               <div className="relative">
                 <Input
+                  ref={percentageInputRef}
                   type="number"
                   min="0"
                   max="100"
                   step="0.1"
                   placeholder="0.0"
-                  value={installment.percentageOfDeal.toFixed(1)}
+                  value={getPercentageDisplayValue()}
                   onChange={(e) => handlePercentageChange(e.target.value)}
+                  onFocus={handlePercentageFocus}
+                  onBlur={handlePercentageBlur}
                   className="h-12 text-base font-medium pr-8"
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm font-medium">
                   %
                 </span>
               </div>
-              <div className="text-xs text-blue-600 font-medium px-2">
-                {installment.percentageOfDeal.toFixed(2)}% of total
-              </div>
+              {!isPercentageFocused && (
+                <div className="text-xs text-blue-600 font-medium px-2">
+                  {installment.percentageOfDeal.toFixed(2)}% of total
+                </div>
+              )}
             </div>
           </div>
         </div>

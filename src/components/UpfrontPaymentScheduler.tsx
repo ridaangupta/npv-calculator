@@ -24,9 +24,9 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   const calculatedValues = useMemo(() => {
     const totalAmount = paymentSchedule.installments.reduce((sum, inst) => sum + inst.amountDue, 0);
     const totalPercentage = paymentSchedule.installments.reduce((sum, inst) => sum + inst.percentageOfDeal, 0);
-    const remainingAmount = totalNPV - totalAmount;
+    const remainingAmount = Math.max(0, totalNPV - totalAmount);
     
-    const isValid = totalAmount <= totalNPV && totalPercentage <= 100;
+    const isValid = totalNPV > 0 ? (totalAmount <= totalNPV && totalPercentage <= 100) : true;
     
     return {
       totalAmount,
@@ -78,7 +78,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   const updateInstallmentPercentage = (id: string, percentage: number) => {
     const updatedInstallments = paymentSchedule.installments.map(inst => {
       if (inst.id === id) {
-        const amount = (percentage / 100) * totalNPV;
+        const amount = totalNPV > 0 ? (percentage / 100) * totalNPV : 0;
         return { ...inst, percentageOfDeal: percentage, amountDue: amount };
       }
       return inst;
@@ -92,10 +92,6 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     );
     updateSchedule(updatedInstallments);
   };
-
-  if (totalNPV <= 0) {
-    return null;
-  }
 
   return (
     <div className="w-full space-y-4">
