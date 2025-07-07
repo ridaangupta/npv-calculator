@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { format, parse, isValid } from 'date-fns';
+import { format } from 'date-fns';
 
 interface PaymentDateInputProps {
   paymentDate: Date;
@@ -15,56 +16,21 @@ const PaymentDateInput: React.FC<PaymentDateInputProps> = ({
   paymentDate,
   onUpdateDate
 }) => {
-  const [dateValue, setDateValue] = useState(format(paymentDate, 'dd/MM/yyyy'));
-  const [isDateFocused, setIsDateFocused] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!isDateFocused) {
-      setDateValue(format(paymentDate, 'dd/MM/yyyy'));
+  const handleDateInputChange = (value: string) => {
+    const newDate = new Date(value);
+    if (!isNaN(newDate.getTime())) {
+      onUpdateDate(newDate);
     }
-  }, [paymentDate, isDateFocused]);
+  };
 
-  const handleDateFocus = useCallback(() => {
-    setIsDateFocused(true);
-  }, []);
-
-  const handleDateBlur = useCallback(() => {
-    const parsedDate = parse(dateValue, 'dd/MM/yyyy', new Date());
-    setIsDateFocused(false);
-    if (isValid(parsedDate)) {
-      onUpdateDate(parsedDate);
-    } else {
-      setDateValue(format(paymentDate, 'dd/MM/yyyy'));
-    }
-  }, [dateValue, paymentDate, onUpdateDate]);
-
-  const handleDateChange = useCallback((value: string) => {
-    const cleanValue = value.replace(/[^\d/]/g, '');
-    let formattedValue = cleanValue;
-    if (cleanValue.length >= 2 && cleanValue.charAt(2) !== '/') {
-      formattedValue = cleanValue.slice(0, 2) + '/' + cleanValue.slice(2);
-    }
-    if (cleanValue.length >= 5 && cleanValue.charAt(5) !== '/') {
-      const parts = formattedValue.split('/');
-      if (parts.length >= 2) {
-        formattedValue = parts[0] + '/' + parts[1] + '/' + cleanValue.slice(5);
-      }
-    }
-    if (formattedValue.length <= 10) {
-      setDateValue(formattedValue);
-    }
-  }, []);
-
-  const handleCalendarSelect = useCallback((date: Date | undefined) => {
+  const handleCalendarSelect = (date: Date | undefined) => {
     if (date) {
       onUpdateDate(date);
       setIsCalendarOpen(false);
     }
-  }, [onUpdateDate]);
-
-  const dateDisplayValue = isDateFocused ? dateValue : format(paymentDate, 'dd/MM/yyyy');
+  };
 
   return (
     <div className="space-y-2">
@@ -73,13 +39,9 @@ const PaymentDateInput: React.FC<PaymentDateInputProps> = ({
       </label>
       <div className="space-y-2">
         <Input
-          ref={dateInputRef}
-          type="text"
-          placeholder="dd/mm/yyyy"
-          value={dateDisplayValue}
-          onChange={(e) => handleDateChange(e.target.value)}
-          onFocus={handleDateFocus}
-          onBlur={handleDateBlur}
+          type="date"
+          value={format(paymentDate, 'yyyy-MM-dd')}
+          onChange={(e) => handleDateInputChange(e.target.value)}
           className="h-12 text-base font-medium"
         />
         <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
