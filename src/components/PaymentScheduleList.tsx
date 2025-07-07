@@ -10,6 +10,8 @@ interface PaymentScheduleListProps {
   onUpdatePercentage: (id: string, percentage: number) => void;
   onUpdateDate: (id: string, date: Date) => void;
   onRemove: (id: string) => void;
+  leaseStartDate: Date;
+  discountRate: number;
 }
 
 const PaymentScheduleList: React.FC<PaymentScheduleListProps> = (props) => {

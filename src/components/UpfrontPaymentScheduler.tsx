@@ -1,22 +1,28 @@
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { PaymentInstallment, PaymentSchedule } from '@/types/PaymentSchedule';
 import PaymentScheduleSummary from './PaymentScheduleSummary';
 import PaymentScheduleHeader from './PaymentScheduleHeader';
 import PaymentScheduleEmpty from './PaymentScheduleEmpty';
 import PaymentScheduleList from './PaymentScheduleList';
+import { format } from 'date-fns';
+import { calculatePresentValue, calculateFutureValue } from '@/utils/timeValueCalculations';
 
 interface UpfrontPaymentSchedulerProps {
   totalNPV: number;
   paymentSchedule: PaymentSchedule;
   onUpdateSchedule: (schedule: PaymentSchedule) => void;
+  discountRate: number;
 }
 
 const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   totalNPV,
   paymentSchedule,
-  onUpdateSchedule
+  onUpdateSchedule,
+  discountRate
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -41,7 +47,8 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
       installments,
       totalPercentage: calculatedValues.totalPercentage,
       totalAmount: calculatedValues.totalAmount,
-      remainingAmount: calculatedValues.remainingAmount
+      remainingAmount: calculatedValues.remainingAmount,
+      leaseStartDate: paymentSchedule.leaseStartDate
     };
     onUpdateSchedule(newSchedule);
   };
@@ -52,6 +59,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
       paymentDate: new Date(),
       percentageOfDeal: 0,
       amountDue: 0,
+      presentValue: 0,
       description: `Payment ${paymentSchedule.installments.length + 1}`
     };
     
@@ -67,8 +75,9 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   const updateInstallmentAmount = (id: string, amount: number) => {
     const updatedInstallments = paymentSchedule.installments.map(inst => {
       if (inst.id === id) {
-        const percentage = totalNPV > 0 ? (amount / totalNPV) * 100 : 0;
-        return { ...inst, amountDue: amount, percentageOfDeal: percentage };
+        const presentValue = calculatePresentValue(amount, discountRate, paymentSchedule.leaseStartDate, inst.paymentDate);
+        const percentage = totalNPV > 0 ? (presentValue / totalNPV) * 100 : 0;
+        return { ...inst, amountDue: amount, presentValue, percentageOfDeal: percentage };
       }
       return inst;
     });
@@ -78,8 +87,9 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   const updateInstallmentPercentage = (id: string, percentage: number) => {
     const updatedInstallments = paymentSchedule.installments.map(inst => {
       if (inst.id === id) {
-        const amount = totalNPV > 0 ? (percentage / 100) * totalNPV : 0;
-        return { ...inst, percentageOfDeal: percentage, amountDue: amount };
+        const presentValueTarget = totalNPV > 0 ? (percentage / 100) * totalNPV : 0;
+        const futureValue = calculateFutureValue(presentValueTarget, discountRate, paymentSchedule.leaseStartDate, inst.paymentDate);
+        return { ...inst, percentageOfDeal: percentage, amountDue: futureValue, presentValue: presentValueTarget };
       }
       return inst;
     });
@@ -87,10 +97,32 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   };
 
   const updateInstallmentDate = (id: string, date: Date) => {
-    const updatedInstallments = paymentSchedule.installments.map(inst => 
-      inst.id === id ? { ...inst, paymentDate: date } : inst
-    );
+    const updatedInstallments = paymentSchedule.installments.map(inst => {
+      if (inst.id === id) {
+        const presentValue = calculatePresentValue(inst.amountDue, discountRate, paymentSchedule.leaseStartDate, date);
+        return { ...inst, paymentDate: date, presentValue };
+      }
+      return inst;
+    });
     updateSchedule(updatedInstallments);
+  };
+
+  const updateLeaseStartDate = (dateString: string) => {
+    const newStartDate = new Date(dateString);
+    if (isNaN(newStartDate.getTime())) return;
+    
+    const updatedInstallments = paymentSchedule.installments.map(inst => {
+      const presentValue = calculatePresentValue(inst.amountDue, discountRate, newStartDate, inst.paymentDate);
+      const percentage = totalNPV > 0 ? (presentValue / totalNPV) * 100 : 0;
+      return { ...inst, presentValue, percentageOfDeal: percentage };
+    });
+    
+    const newSchedule = {
+      ...paymentSchedule,
+      leaseStartDate: newStartDate,
+      installments: updatedInstallments
+    };
+    onUpdateSchedule(newSchedule);
   };
 
   return (
@@ -103,6 +135,19 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
         />
         
         <CardContent className="p-6">
+          <div className="mb-6 space-y-2">
+            <Label htmlFor="lease-start-date" className="text-sm font-medium text-gray-700">
+              Lease Start Date
+            </Label>
+            <Input
+              id="lease-start-date"
+              type="date"
+              value={format(paymentSchedule.leaseStartDate, 'yyyy-MM-dd')}
+              onChange={(e) => updateLeaseStartDate(e.target.value)}
+              className="w-full"
+            />
+          </div>
+
           <PaymentScheduleSummary
             totalNPV={totalNPV}
             paymentSchedule={paymentSchedule}
@@ -124,6 +169,8 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
                   onUpdatePercentage={updateInstallmentPercentage}
                   onUpdateDate={updateInstallmentDate}
                   onRemove={removeInstallment}
+                  leaseStartDate={paymentSchedule.leaseStartDate}
+                  discountRate={discountRate}
                 />
               )}
             </div>

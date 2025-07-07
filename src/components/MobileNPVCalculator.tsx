@@ -73,6 +73,7 @@ const MobileNPVCalculator: React.FC = () => {
             totalNPV={npv * numericValues.totalHectares}
             paymentSchedule={paymentSchedule}
             onUpdateSchedule={handlePaymentScheduleChange}
+            discountRate={numericValues.discountRate}
           />
         </TabsContent>
         

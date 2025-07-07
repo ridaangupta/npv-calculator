@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Trash2 } from 'lucide-react';
+import { CalendarIcon, Trash2, Clock } from 'lucide-react';
 import { format, parse, isValid } from 'date-fns';
 import { PaymentInstallment } from '@/types/PaymentSchedule';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { calculateDaysToPayment } from '@/utils/timeValueCalculations';
 
 interface PaymentInstallmentCardProps {
   installment: PaymentInstallment;
@@ -16,6 +17,8 @@ interface PaymentInstallmentCardProps {
   onUpdatePercentage: (id: string, percentage: number) => void;
   onUpdateDate: (id: string, date: Date) => void;
   onRemove: (id: string) => void;
+  leaseStartDate: Date;
+  discountRate: number;
 }
 
 const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
@@ -24,7 +27,9 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
   onUpdateAmount,
   onUpdatePercentage,
   onUpdateDate,
-  onRemove
+  onRemove,
+  leaseStartDate,
+  discountRate
 }) => {
   const { formatCurrency } = useCurrency();
   
@@ -147,6 +152,9 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
     ? editState.dateValue 
     : format(installment.paymentDate, 'dd/MM/yyyy');
 
+  // Calculate days to payment
+  const daysToPayment = calculateDaysToPayment(leaseStartDate, installment.paymentDate);
+
   return (
     <Card className="relative bg-white border border-gray-200 hover:shadow-md transition-shadow">
       <CardContent className="p-6">
@@ -164,7 +172,7 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Payment Date */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -223,8 +231,13 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
                 className="h-12 text-base font-medium"
               />
               {!editState.isAmountFocused && installment.amountDue > 0 && (
-                <div className="text-xs text-green-600 font-medium px-2">
-                  {formatCurrency(installment.amountDue)}
+                <div className="space-y-1">
+                  <div className="text-xs text-green-600 font-medium px-2">
+                    Future: {formatCurrency(installment.amountDue)}
+                  </div>
+                  <div className="text-xs text-blue-600 font-medium px-2">
+                    Present: {formatCurrency(installment.presentValue)}
+                  </div>
                 </div>
               )}
             </div>
@@ -256,6 +269,24 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
                   {installment.percentageOfDeal.toFixed(2)}% of total
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Days to Payment */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Time to Payment
+            </label>
+            <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+              <Clock className="w-4 h-4 text-gray-600" />
+              <div className="text-sm">
+                <div className="font-medium text-gray-800">
+                  {daysToPayment} days
+                </div>
+                <div className="text-xs text-gray-600">
+                  {(daysToPayment / 365.25).toFixed(1)} years
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -78,6 +78,7 @@ const DesktopNPVCalculator: React.FC = () => {
           totalNPV={npv * numericValues.totalHectares}
           paymentSchedule={paymentSchedule}
           onUpdateSchedule={handlePaymentScheduleChange}
+          discountRate={numericValues.discountRate}
         />
       </div>
     </div>

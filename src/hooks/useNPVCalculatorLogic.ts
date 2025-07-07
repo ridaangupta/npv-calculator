@@ -27,7 +27,8 @@ export const useNPVCalculatorLogic = () => {
     installments: [],
     totalPercentage: 0,
     totalAmount: 0,
-    remainingAmount: 0
+    remainingAmount: 0,
+    leaseStartDate: new Date()
   });
 
   // Memoized numeric value parsing with early returns for invalid values

@@ -9,6 +9,8 @@ interface PaymentScheduleListProps {
   onUpdatePercentage: (id: string, percentage: number) => void;
   onUpdateDate: (id: string, date: Date) => void;
   onRemove: (id: string) => void;
+  leaseStartDate: Date;
+  discountRate: number;
 }
 
 const PaymentScheduleListMemo: React.FC<PaymentScheduleListProps> = memo(({
@@ -17,7 +19,9 @@ const PaymentScheduleListMemo: React.FC<PaymentScheduleListProps> = memo(({
   onUpdateAmount,
   onUpdatePercentage,
   onUpdateDate,
-  onRemove
+  onRemove,
+  leaseStartDate,
+  discountRate
 }) => {
   return (
     <div className="space-y-4">
@@ -36,6 +40,8 @@ const PaymentScheduleListMemo: React.FC<PaymentScheduleListProps> = memo(({
           onUpdatePercentage={onUpdatePercentage}
           onUpdateDate={onUpdateDate}
           onRemove={onRemove}
+          leaseStartDate={leaseStartDate}
+          discountRate={discountRate}
         />
       ))}
     </div>

@@ -3,6 +3,7 @@ export interface PaymentInstallment {
   paymentDate: Date;
   percentageOfDeal: number;
   amountDue: number;
+  presentValue: number;
   description?: string;
 }
 
@@ -11,4 +12,5 @@ export interface PaymentSchedule {
   totalPercentage: number;
   totalAmount: number;
   remainingAmount: number;
+  leaseStartDate: Date;
 }
