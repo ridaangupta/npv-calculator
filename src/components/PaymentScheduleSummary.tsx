@@ -2,8 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, AlertTriangle, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { CheckCircle, AlertTriangle, Info } from 'lucide-react';
 import { PaymentSchedule } from '@/types/PaymentSchedule';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -14,8 +13,7 @@ interface PaymentScheduleSummaryProps {
   totalPercentage: number;
   remainingAmount: number;
   isValid: boolean;
-  furthestDate?: Date;
-  totalAvailableAtFurthest?: number;
+  totalPresentValue: number;
 }
 
 const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
@@ -24,56 +22,54 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
   totalPercentage,
   remainingAmount,
   isValid,
-  furthestDate,
-  totalAvailableAtFurthest
+  totalPresentValue
 }) => {
   const { formatCurrency } = useCurrency();
 
   return (
     <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
       <CardContent className="p-6">
-        {furthestDate && totalAvailableAtFurthest && (
-          <div className="mb-4 p-3 bg-blue-100 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2 text-blue-800 mb-2">
-              <Calendar className="w-4 h-4" />
-              <span className="text-sm font-medium">Reference Date: {format(furthestDate, 'MMM dd, yyyy')}</span>
-            </div>
-            <p className="text-xs text-blue-700">
-              All percentages are calculated based on the value at the furthest payment date to ensure consistent timing.
-            </p>
+        <div className="mb-4 p-3 bg-blue-100 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-2 text-blue-800 mb-2">
+            <Info className="w-4 h-4" />
+            <span className="text-sm font-medium">Present Value Equivalence Method</span>
           </div>
-        )}
+          <p className="text-xs text-blue-700">
+            Percentages are calculated based on present value (NPV) to ensure accurate time-adjusted payment allocation.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Present Value (NPV)</div>
+            <div className="text-sm text-gray-600 mb-1">Total Available (NPV)</div>
             <div className="text-lg font-bold text-blue-700">
               {formatCurrency(totalNPV)}
             </div>
-            {totalAvailableAtFurthest && (
-              <div className="text-xs text-gray-500 mt-1">
-                At ref. date: {formatCurrency(totalAvailableAtFurthest)}
-              </div>
-            )}
+            <div className="text-xs text-gray-500 mt-1">
+              Present Value Basis
+            </div>
           </div>
           
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Scheduled</div>
+            <div className="text-sm text-gray-600 mb-1">Scheduled Payments</div>
             <div className="text-xl font-bold text-green-700">
               {formatCurrency(totalAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {totalPercentage.toFixed(1)}%
+              Future Value: {totalPercentage.toFixed(1)}%
+            </div>
+            <div className="text-xs text-blue-600 mt-1">
+              Present Value: {formatCurrency(totalPresentValue)}
             </div>
           </div>
           
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Remaining</div>
+            <div className="text-sm text-gray-600 mb-1">Remaining Available</div>
             <div className="text-xl font-bold text-orange-700">
               {formatCurrency(remainingAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {(100 - totalPercentage).toFixed(1)}%
+              {((remainingAmount / totalNPV) * 100).toFixed(1)}% of NPV
             </div>
           </div>
 
@@ -95,19 +91,19 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-gray-700">
-              Payment Schedule Progress
+              Payment Schedule Progress (Present Value Basis)
             </span>
             <span className="text-sm text-gray-600">
-              {totalPercentage.toFixed(1)}% of total
+              {((totalPresentValue / totalNPV) * 100).toFixed(1)}% of NPV allocated
             </span>
           </div>
           <Progress 
-            value={Math.min(totalPercentage, 100)} 
+            value={Math.min((totalPresentValue / totalNPV) * 100, 100)} 
             className="h-3"
           />
           {!isValid && (
             <p className="text-red-500 text-sm mt-2">
-              Total scheduled payments exceed available amount
+              Total present value of scheduled payments exceeds available NPV
             </p>
           )}
         </div>

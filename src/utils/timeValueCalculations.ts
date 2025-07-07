@@ -1,3 +1,4 @@
+
 import { differenceInDays } from 'date-fns';
 
 export const calculatePresentValue = (
@@ -38,20 +39,19 @@ export const calculateDaysToPayment = (startDate: Date, paymentDate: Date): numb
   return differenceInDays(paymentDate, startDate);
 };
 
-export const findFurthestPaymentDate = (paymentDates: Date[], leaseStartDate: Date): Date => {
-  if (paymentDates.length === 0) {
-    return leaseStartDate;
-  }
-  return paymentDates.reduce((furthest, current) => 
-    current > furthest ? current : furthest
-  );
+// New function for Present Value Equivalence Method
+export const calculatePresentValuePortion = (
+  percentage: number,
+  totalNPV: number
+): number => {
+  return (percentage / 100) * totalNPV;
 };
 
-export const calculateTotalAvailableAtFurthestDate = (
-  npv: number,
-  discountRate: number,
-  leaseStartDate: Date,
-  furthestDate: Date
+export const calculatePercentageFromPresentValue = (
+  presentValue: number,
+  totalNPV: number
 ): number => {
-  return calculateFutureValue(npv, discountRate, leaseStartDate, furthestDate);
+  return totalNPV > 0 ? (presentValue / totalNPV) * 100 : 0;
 };
+
+// Remove the old "furthest date" functions as they're no longer needed
