@@ -30,8 +30,8 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
   
   // Combined state for better performance
   const [editState, setEditState] = useState({
-    amountValue: installment.amountDue.toString(),
-    percentageValue: installment.percentageOfDeal.toString(),
+    amountValue: installment.amountDue > 0 ? installment.amountDue.toString() : '',
+    percentageValue: installment.percentageOfDeal > 0 ? installment.percentageOfDeal.toString() : '',
     dateValue: format(installment.paymentDate, 'dd/MM/yyyy'),
     isAmountFocused: false,
     isPercentageFocused: false,
@@ -47,8 +47,8 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
   useEffect(() => {
     setEditState(prev => ({
       ...prev,
-      amountValue: prev.isAmountFocused ? prev.amountValue : installment.amountDue.toString(),
-      percentageValue: prev.isPercentageFocused ? prev.percentageValue : installment.percentageOfDeal.toString(),
+      amountValue: prev.isAmountFocused ? prev.amountValue : (installment.amountDue > 0 ? installment.amountDue.toString() : ''),
+      percentageValue: prev.isPercentageFocused ? prev.percentageValue : (installment.percentageOfDeal > 0 ? installment.percentageOfDeal.toString() : ''),
       dateValue: prev.isDateFocused ? prev.dateValue : format(installment.paymentDate, 'dd/MM/yyyy')
     }));
   }, [installment.amountDue, installment.percentageOfDeal, installment.paymentDate]);
@@ -58,7 +58,7 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
     setEditState(prev => ({
       ...prev,
       isAmountFocused: true,
-      amountValue: installment.amountDue.toString()
+      amountValue: installment.amountDue > 0 ? installment.amountDue.toString() : ''
     }));
   }, [installment.amountDue]);
 
@@ -69,15 +69,17 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
   }, [editState.amountValue, installment.id, onUpdateAmount]);
 
   const handleAmountChange = useCallback((value: string) => {
-    const cleanValue = value.replace(/[^\d.]/g, '');
-    setEditState(prev => ({ ...prev, amountValue: cleanValue }));
+    // Allow empty string or valid number format
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setEditState(prev => ({ ...prev, amountValue: value }));
+    }
   }, []);
 
   const handlePercentageFocus = useCallback(() => {
     setEditState(prev => ({
       ...prev,
       isPercentageFocused: true,
-      percentageValue: installment.percentageOfDeal.toString()
+      percentageValue: installment.percentageOfDeal > 0 ? installment.percentageOfDeal.toString() : ''
     }));
   }, [installment.percentageOfDeal]);
 
@@ -88,7 +90,10 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
   }, [editState.percentageValue, installment.id, onUpdatePercentage]);
 
   const handlePercentageChange = useCallback((value: string) => {
-    setEditState(prev => ({ ...prev, percentageValue: value }));
+    // Allow empty string or valid number format with up to 2 decimal places
+    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+      setEditState(prev => ({ ...prev, percentageValue: value }));
+    }
   }, []);
 
   const handleDateFocus = useCallback(() => {
@@ -132,11 +137,11 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
   // Memoized display values
   const amountDisplayValue = editState.isAmountFocused 
     ? editState.amountValue 
-    : installment.amountDue.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    : (installment.amountDue > 0 ? installment.amountDue.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '');
 
   const percentageDisplayValue = editState.isPercentageFocused 
     ? editState.percentageValue 
-    : installment.percentageOfDeal.toFixed(1);
+    : (installment.percentageOfDeal > 0 ? installment.percentageOfDeal.toFixed(1) : '');
 
   const dateDisplayValue = editState.isDateFocused 
     ? editState.dateValue 
@@ -217,7 +222,7 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
                 onBlur={handleAmountBlur}
                 className="h-12 text-base font-medium"
               />
-              {!editState.isAmountFocused && (
+              {!editState.isAmountFocused && installment.amountDue > 0 && (
                 <div className="text-xs text-green-600 font-medium px-2">
                   {formatCurrency(installment.amountDue)}
                 </div>
@@ -234,11 +239,8 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
               <div className="relative">
                 <Input
                   ref={percentageInputRef}
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  placeholder="0.0"
+                  type="text"
+                  placeholder="Enter percentage"
                   value={percentageDisplayValue}
                   onChange={(e) => handlePercentageChange(e.target.value)}
                   onFocus={handlePercentageFocus}
@@ -249,7 +251,7 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
                   %
                 </span>
               </div>
-              {!editState.isPercentageFocused && (
+              {!editState.isPercentageFocused && installment.percentageOfDeal > 0 && (
                 <div className="text-xs text-blue-600 font-medium px-2">
                   {installment.percentageOfDeal.toFixed(2)}% of total
                 </div>
