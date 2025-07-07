@@ -9,7 +9,7 @@ import PaymentScheduleHeader from './PaymentScheduleHeader';
 import PaymentScheduleEmpty from './PaymentScheduleEmpty';
 import PaymentScheduleList from './PaymentScheduleList';
 import { format } from 'date-fns';
-import { calculatePresentValue, calculateFutureValue } from '@/utils/timeValueCalculations';
+import { calculatePresentValue, calculateFutureValue, findFurthestPaymentDate, calculateTotalAvailableAtFurthestDate } from '@/utils/timeValueCalculations';
 
 interface UpfrontPaymentSchedulerProps {
   totalNPV: number;
@@ -26,21 +26,28 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Calculate derived values
+  // Calculate derived values based on furthest payment date
   const calculatedValues = useMemo(() => {
+    const paymentDates = paymentSchedule.installments.map(inst => inst.paymentDate);
+    const furthestDate = findFurthestPaymentDate(paymentDates, paymentSchedule.leaseStartDate);
+    const totalAvailableAtFurthest = totalNPV > 0 ? 
+      calculateTotalAvailableAtFurthestDate(totalNPV, discountRate, paymentSchedule.leaseStartDate, furthestDate) : 0;
+    
     const totalAmount = paymentSchedule.installments.reduce((sum, inst) => sum + inst.amountDue, 0);
     const totalPercentage = paymentSchedule.installments.reduce((sum, inst) => sum + inst.percentageOfDeal, 0);
-    const remainingAmount = Math.max(0, totalNPV - totalAmount);
+    const remainingAmount = Math.max(0, totalAvailableAtFurthest - totalAmount);
     
-    const isValid = totalNPV > 0 ? (totalAmount <= totalNPV && totalPercentage <= 100) : true;
+    const isValid = totalAvailableAtFurthest > 0 ? (totalAmount <= totalAvailableAtFurthest && totalPercentage <= 100) : true;
     
     return {
       totalAmount,
       totalPercentage,
       remainingAmount,
-      isValid
+      isValid,
+      furthestDate,
+      totalAvailableAtFurthest
     };
-  }, [paymentSchedule.installments, totalNPV]);
+  }, [paymentSchedule.installments, paymentSchedule.leaseStartDate, totalNPV, discountRate]);
 
   const updateSchedule = (installments: PaymentInstallment[]) => {
     const newSchedule: PaymentSchedule = {
@@ -76,7 +83,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     const updatedInstallments = paymentSchedule.installments.map(inst => {
       if (inst.id === id) {
         const presentValue = calculatePresentValue(amount, discountRate, paymentSchedule.leaseStartDate, inst.paymentDate);
-        const percentage = totalNPV > 0 ? (presentValue / totalNPV) * 100 : 0;
+        const percentage = calculatedValues.totalAvailableAtFurthest > 0 ? (amount / calculatedValues.totalAvailableAtFurthest) * 100 : 0;
         return { ...inst, amountDue: amount, presentValue, percentageOfDeal: percentage };
       }
       return inst;
@@ -87,9 +94,9 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   const updateInstallmentPercentage = (id: string, percentage: number) => {
     const updatedInstallments = paymentSchedule.installments.map(inst => {
       if (inst.id === id) {
-        const presentValueTarget = totalNPV > 0 ? (percentage / 100) * totalNPV : 0;
-        const futureValue = calculateFutureValue(presentValueTarget, discountRate, paymentSchedule.leaseStartDate, inst.paymentDate);
-        return { ...inst, percentageOfDeal: percentage, amountDue: futureValue, presentValue: presentValueTarget };
+        const futureValueTarget = calculatedValues.totalAvailableAtFurthest > 0 ? (percentage / 100) * calculatedValues.totalAvailableAtFurthest : 0;
+        const presentValue = calculatePresentValue(futureValueTarget, discountRate, paymentSchedule.leaseStartDate, inst.paymentDate);
+        return { ...inst, percentageOfDeal: percentage, amountDue: futureValueTarget, presentValue };
       }
       return inst;
     });
@@ -111,9 +118,15 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     const newStartDate = new Date(dateString);
     if (isNaN(newStartDate.getTime())) return;
     
+    // Recalculate with new start date to get new furthest date and total available
+    const paymentDates = paymentSchedule.installments.map(inst => inst.paymentDate);
+    const furthestDate = findFurthestPaymentDate(paymentDates, newStartDate);
+    const newTotalAvailable = totalNPV > 0 ? 
+      calculateTotalAvailableAtFurthestDate(totalNPV, discountRate, newStartDate, furthestDate) : 0;
+    
     const updatedInstallments = paymentSchedule.installments.map(inst => {
       const presentValue = calculatePresentValue(inst.amountDue, discountRate, newStartDate, inst.paymentDate);
-      const percentage = totalNPV > 0 ? (presentValue / totalNPV) * 100 : 0;
+      const percentage = newTotalAvailable > 0 ? (inst.amountDue / newTotalAvailable) * 100 : 0;
       return { ...inst, presentValue, percentageOfDeal: percentage };
     });
     
@@ -155,6 +168,8 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
             totalPercentage={calculatedValues.totalPercentage}
             remainingAmount={calculatedValues.remainingAmount}
             isValid={calculatedValues.isValid}
+            furthestDate={calculatedValues.furthestDate}
+            totalAvailableAtFurthest={calculatedValues.totalAvailableAtFurthest}
           />
 
           {isExpanded && (

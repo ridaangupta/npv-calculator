@@ -37,3 +37,21 @@ export const calculateFutureValue = (
 export const calculateDaysToPayment = (startDate: Date, paymentDate: Date): number => {
   return differenceInDays(paymentDate, startDate);
 };
+
+export const findFurthestPaymentDate = (paymentDates: Date[], leaseStartDate: Date): Date => {
+  if (paymentDates.length === 0) {
+    return leaseStartDate;
+  }
+  return paymentDates.reduce((furthest, current) => 
+    current > furthest ? current : furthest
+  );
+};
+
+export const calculateTotalAvailableAtFurthestDate = (
+  npv: number,
+  discountRate: number,
+  leaseStartDate: Date,
+  furthestDate: Date
+): number => {
+  return calculateFutureValue(npv, discountRate, leaseStartDate, furthestDate);
+};

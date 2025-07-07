@@ -2,7 +2,8 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
 import { PaymentSchedule } from '@/types/PaymentSchedule';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -13,6 +14,8 @@ interface PaymentScheduleSummaryProps {
   totalPercentage: number;
   remainingAmount: number;
   isValid: boolean;
+  furthestDate?: Date;
+  totalAvailableAtFurthest?: number;
 }
 
 const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
@@ -20,19 +23,38 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
   totalAmount,
   totalPercentage,
   remainingAmount,
-  isValid
+  isValid,
+  furthestDate,
+  totalAvailableAtFurthest
 }) => {
   const { formatCurrency } = useCurrency();
 
   return (
     <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
       <CardContent className="p-6">
+        {furthestDate && totalAvailableAtFurthest && (
+          <div className="mb-4 p-3 bg-blue-100 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 text-blue-800 mb-2">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm font-medium">Reference Date: {format(furthestDate, 'MMM dd, yyyy')}</span>
+            </div>
+            <p className="text-xs text-blue-700">
+              All percentages are calculated based on the value at the furthest payment date to ensure consistent timing.
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Total Available</div>
-            <div className="text-xl font-bold text-blue-700">
+            <div className="text-sm text-gray-600 mb-1">Present Value (NPV)</div>
+            <div className="text-lg font-bold text-blue-700">
               {formatCurrency(totalNPV)}
             </div>
+            {totalAvailableAtFurthest && (
+              <div className="text-xs text-gray-500 mt-1">
+                At ref. date: {formatCurrency(totalAvailableAtFurthest)}
+              </div>
+            )}
           </div>
           
           <div className="text-center">
