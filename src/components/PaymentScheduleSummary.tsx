@@ -41,17 +41,17 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Total Available (NPV)</div>
+            <div className="text-sm text-gray-600 mb-1">Deal Value</div>
             <div className="text-lg font-bold text-blue-700">
               {formatCurrency(totalNPV)}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Present Value Basis
+              Present Value Basis for %
             </div>
           </div>
           
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Scheduled Payments</div>
+            <div className="text-sm text-gray-600 mb-1">Total Amount Paid</div>
             <div className="text-xl font-bold text-green-700">
               {formatCurrency(totalAmount)}
             </div>
@@ -64,12 +64,12 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
           </div>
           
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Remaining Available</div>
+            <div className="text-sm text-gray-600 mb-1">Remaining Deal Value</div>
             <div className="text-xl font-bold text-orange-700">
               {formatCurrency(remainingAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {((remainingAmount / totalNPV) * 100).toFixed(1)}% of NPV
+              {((remainingAmount / totalNPV) * 100).toFixed(1)}% of Deal Value
             </div>
           </div>
 
@@ -94,7 +94,7 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
               Payment Schedule Progress (Present Value Basis)
             </span>
             <span className="text-sm text-gray-600">
-              {((totalPresentValue / totalNPV) * 100).toFixed(1)}% of NPV allocated
+              {((totalPresentValue / totalNPV) * 100).toFixed(1)}% of Deal Value allocated
             </span>
           </div>
           <Progress 
@@ -103,9 +103,16 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
           />
           {!isValid && (
             <p className="text-red-500 text-sm mt-2">
-              Total present value of scheduled payments exceeds available NPV
+              Total present value of scheduled payments exceeds available deal value
             </p>
           )}
+          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+            <div className="text-xs text-gray-600">
+              <strong>Debug Info:</strong> Deal Value (PV): {formatCurrency(totalNPV)} | 
+              Total Payments (FV): {formatCurrency(totalAmount)} | 
+              Total PV of Payments: {formatCurrency(totalPresentValue)}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

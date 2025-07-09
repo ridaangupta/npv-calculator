@@ -43,6 +43,16 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     // Validation: sum of present values should not exceed total NPV
     const isValid = totalNPV > 0 ? (totalPresentValue <= totalNPV && totalPercentage <= 100) : true;
     
+    // Debug logging
+    console.log('Payment Schedule Debug:', {
+      totalNPV,
+      totalPresentValue,
+      totalAmount,
+      totalPercentage,
+      remainingPresentValue,
+      isValid
+    });
+    
     return {
       totalAmount,
       totalPercentage,
@@ -105,6 +115,10 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
         const presentValuePortion = calculatePresentValuePortion(percentage, totalNPV);
         // Convert this present value portion to future value at the payment date
         const futureValue = calculateFutureValue(presentValuePortion, discountRate, paymentSchedule.leaseStartDate, inst.paymentDate);
+        
+        // Debug logging
+        console.log(`Payment ${inst.id}: ${percentage}% = PV ${presentValuePortion} -> FV ${futureValue}`);
+        
         return { ...inst, percentageOfDeal: percentage, amountDue: futureValue, presentValue: presentValuePortion };
       }
       return inst;
