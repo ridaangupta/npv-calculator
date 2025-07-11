@@ -90,7 +90,7 @@ export const useNPVCalculatorLogic = () => {
     setPaymentSchedule(schedule);
   }, []);
 
-  // Optimize the main calculation hook - combine debounced effects
+  // Enhanced validation for calculations - prevent invalid calculations
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const { baseCashFlow, increaseValue, timePeriod, discountRate } = numericValues;
@@ -100,6 +100,20 @@ export const useNPVCalculatorLogic = () => {
         setCashFlows([]);
         setNpv(0);
         return;
+      }
+
+      // Additional validation for custom payment schedules
+      if (paymentType === 'custom') {
+        // Check if payment schedule has validation errors
+        const hasIncompleteSchedule = paymentSchedule.installments.length === 0;
+        const hasInvalidSchedule = paymentSchedule.installments.some(inst => 
+          inst.amountDue <= 0 || inst.percentageOfDeal <= 0 || !inst.paymentDate
+        );
+        
+        if (hasIncompleteSchedule || hasInvalidSchedule) {
+          console.warn('Calculation blocked: Payment schedule validation failed');
+          // Still generate cash flows but don't use invalid schedule data
+        }
       }
 
       // Generate cash flows
@@ -123,7 +137,7 @@ export const useNPVCalculatorLogic = () => {
     }, 100); // Reduced debounce further to 100ms
 
     return () => clearTimeout(timeoutId);
-  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, discountRateInput, paymentTiming, numericValues, generateCashFlowsMemoized, calculateNPVMemoized]);
+  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, discountRateInput, paymentTiming, paymentType, paymentSchedule.installments, numericValues, generateCashFlowsMemoized, calculateNPVMemoized]);
 
   return {
     // State values

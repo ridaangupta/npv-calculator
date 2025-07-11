@@ -14,6 +14,9 @@ interface PaymentScheduleSummaryProps {
   remainingAmount: number;
   isValid: boolean;
   totalPresentValue: number;
+  isIncomplete: boolean;
+  validationErrors: string[];
+  percentageAllocated: number;
 }
 
 const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
@@ -22,7 +25,10 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
   totalPercentage,
   remainingAmount,
   isValid,
-  totalPresentValue
+  totalPresentValue,
+  isIncomplete,
+  validationErrors,
+  percentageAllocated
 }) => {
   const { formatCurrency } = useCurrency();
 
@@ -39,6 +45,7 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
           </p>
         </div>
 
+        {/* Validation Status and Errors */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="text-center">
             <div className="text-sm text-gray-600 mb-1">Deal Value</div>
@@ -73,39 +80,89 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-center">
-            {isValid ? (
-              <div className="flex items-center gap-2 text-green-600">
+          <div className="flex flex-col items-center justify-center">
+            {isValid && !isIncomplete ? (
+              <div className="flex items-center gap-2 text-green-600 mb-2">
                 <CheckCircle className="w-6 h-6" />
                 <span className="font-medium">Valid</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-red-600">
+              <div className="flex items-center gap-2 text-red-600 mb-2">
                 <AlertTriangle className="w-6 h-6" />
-                <span className="font-medium">Invalid</span>
+                <span className="font-medium">
+                  {isIncomplete ? 'Incomplete' : 'Invalid'}
+                </span>
+              </div>
+            )}
+            {isIncomplete && (
+              <div className="text-xs text-orange-600 text-center">
+                {percentageAllocated.toFixed(1)}% allocated
               </div>
             )}
           </div>
         </div>
+
+        {/* Error Messages */}
+        {validationErrors.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2 text-red-700 mb-2">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="font-medium">Validation Errors:</span>
+            </div>
+            <ul className="list-disc pl-5 space-y-1">
+              {validationErrors.map((error, index) => (
+                <li key={index} className="text-sm text-red-600">{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-gray-700">
               Payment Schedule Progress (Present Value Basis)
             </span>
-            <span className="text-sm text-gray-600">
-              {((totalPresentValue / totalNPV) * 100).toFixed(1)}% of Deal Value allocated
+            <span className={`text-sm font-medium ${
+              percentageAllocated >= 95 && percentageAllocated <= 105 
+                ? 'text-green-600' 
+                : percentageAllocated < 95 
+                  ? 'text-orange-600' 
+                  : 'text-red-600'
+            }`}>
+              {percentageAllocated.toFixed(1)}% of Deal Value allocated
             </span>
           </div>
           <Progress 
-            value={Math.min((totalPresentValue / totalNPV) * 100, 100)} 
-            className="h-3"
+            value={Math.min(percentageAllocated, 100)} 
+            className={`h-3 ${
+              percentageAllocated > 100 ? '[&>div]:bg-red-500' : 
+              percentageAllocated < 95 ? '[&>div]:bg-orange-500' : 
+              '[&>div]:bg-green-500'
+            }`}
           />
-          {!isValid && (
-            <p className="text-red-500 text-sm mt-2">
-              Total present value of scheduled payments exceeds available deal value
+          
+          {/* Progress Status Messages */}
+          {percentageAllocated < 95 && (
+            <p className="text-orange-600 text-sm mt-2 flex items-center gap-1">
+              <AlertTriangle className="w-4 h-4" />
+              Payment schedule incomplete - {(100 - percentageAllocated).toFixed(1)}% remaining to allocate
             </p>
           )}
+          
+          {percentageAllocated > 105 && (
+            <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+              <AlertTriangle className="w-4 h-4" />
+              Payment schedule exceeds deal value by {(percentageAllocated - 100).toFixed(1)}%
+            </p>
+          )}
+          
+          {percentageAllocated >= 95 && percentageAllocated <= 105 && (
+            <p className="text-green-600 text-sm mt-2 flex items-center gap-1">
+              <CheckCircle className="w-4 h-4" />
+              Payment schedule is properly balanced
+            </p>
+          )}
+          
           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
             <div className="text-xs text-gray-600">
               <strong>Debug Info:</strong> Deal Value (PV): {formatCurrency(totalNPV)} | 

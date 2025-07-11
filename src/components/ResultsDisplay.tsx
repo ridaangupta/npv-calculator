@@ -2,9 +2,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, DollarSign, Calculator, BarChart } from 'lucide-react';
+import { TrendingUp, DollarSign, Calculator, BarChart, AlertTriangle } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { PaymentSchedule } from '@/types/PaymentSchedule';
+import ValidationAlert from './ValidationAlert';
 
 interface CashFlow {
   id: string;
@@ -30,6 +31,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   npv,
   totalHectares,
   discountRate,
+  cashFlows,
   baseCashFlow,
   increaseValue,
   increaseType,
@@ -37,11 +39,73 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 }) => {
   const { formatCurrency } = useCurrency();
 
+  // Enhanced validation for results display
+  const validationIssues = [];
+  
+  if (baseCashFlow <= 0) {
+    validationIssues.push('Base cash flow must be greater than 0');
+  }
+  
+  if (discountRate <= 0) {
+    validationIssues.push('Discount rate must be greater than 0');
+  }
+  
+  if (totalHectares <= 0) {
+    validationIssues.push('Total hectares must be greater than 0');
+  }
+  
+  if (!cashFlows || cashFlows.length === 0) {
+    validationIssues.push('No cash flows generated - check your inputs');
+  }
+
+  const hasValidationErrors = validationIssues.length > 0;
+  
+  // If there are validation errors, show error state
+  if (hasValidationErrors) {
+    return (
+      <div className="space-y-6">
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-red-600 to-orange-600 text-white">
+            <CardTitle className="flex items-center gap-2">
+              <Calculator className="w-5 h-5" />
+              NPV Calculation Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <ValidationAlert
+              type="error"
+              title="Cannot Calculate Results"
+              message="Please fix the following validation errors before calculations can be performed:"
+              className="mb-4"
+            />
+            <ul className="list-disc pl-5 space-y-1">
+              {validationIssues.map((issue, index) => (
+                <li key={index} className="text-sm text-red-600">{issue}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show warning if NPV is zero or negative
+  const showNpvWarning = npv <= 0;
+
   // Calculate per square meter (1 hectare = 10,000 square meters)
   const npvPerSquareMeter = npv / 10000;
 
   return (
     <div className="space-y-6">
+      {/* NPV Warning Alert */}
+      {showNpvWarning && (
+        <ValidationAlert
+          type="warning"
+          title="Low or Negative NPV"
+          message="The calculated NPV is zero or negative. This may indicate that the cash flows do not justify the investment at the current discount rate. Please review your inputs."
+        />
+      )}
+      
       {/* Main Results Cards */}
       <div className="grid grid-cols-1 gap-4">
         <Card className="shadow-lg border-0 bg-gradient-to-br from-green-500 to-emerald-600 text-white">

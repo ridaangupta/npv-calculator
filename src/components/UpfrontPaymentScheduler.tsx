@@ -32,7 +32,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   // Auto-expand when there are installments for better mobile UX
   const [isExpanded, setIsExpanded] = useState(true);
 
-  // Calculate derived values using Present Value Equivalence Method
+// Enhanced validation logic with comprehensive error checking
   const calculatedValues = useMemo(() => {
     const totalPresentValue = paymentSchedule.installments.reduce((sum, inst) => sum + inst.presentValue, 0);
     const totalAmount = paymentSchedule.installments.reduce((sum, inst) => sum + inst.amountDue, 0);
@@ -41,17 +41,72 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     // Remaining amount is based on present value (NPV)
     const remainingPresentValue = Math.max(0, totalNPV - totalPresentValue);
     
-    // Validation: sum of present values should not exceed total NPV
-    const isValid = totalNPV > 0 ? (totalPresentValue <= totalNPV && totalPercentage <= 100) : true;
+    // Enhanced validation with detailed error tracking
+    const validationErrors = [];
+    let isValid = true;
     
-    // Debug logging
-    console.log('Payment Schedule Debug:', {
+    // Check if total NPV is valid
+    if (totalNPV <= 0) {
+      validationErrors.push('Invalid total NPV value');
+      isValid = false;
+    }
+    
+    // Check if installments exist for custom payment type
+    if (paymentSchedule.installments.length === 0) {
+      validationErrors.push('No payment installments configured');
+      isValid = false;
+    }
+    
+    // Check for incomplete installment data
+    const incompleteInstallments = paymentSchedule.installments.filter(inst => 
+      inst.amountDue <= 0 || inst.percentageOfDeal <= 0 || !inst.paymentDate
+    );
+    if (incompleteInstallments.length > 0) {
+      validationErrors.push(`${incompleteInstallments.length} installment(s) have incomplete data`);
+      isValid = false;
+    }
+    
+    // Check if present value exceeds NPV
+    if (totalNPV > 0 && totalPresentValue > totalNPV * 1.01) { // Allow 1% tolerance for rounding
+      validationErrors.push('Total present value exceeds available deal value');
+      isValid = false;
+    }
+    
+    // Check if percentage is too high
+    if (totalPercentage > 100.1) { // Allow small tolerance for rounding
+      validationErrors.push('Total percentage exceeds 100%');
+      isValid = false;
+    }
+    
+    // Check if schedule is incomplete (not close to 100%)
+    const percentageAllocated = totalNPV > 0 ? (totalPresentValue / totalNPV) * 100 : 0;
+    const isIncomplete = percentageAllocated < 95; // Less than 95% allocated
+    if (isIncomplete && paymentSchedule.installments.length > 0) {
+      validationErrors.push(`Payment schedule incomplete (${percentageAllocated.toFixed(1)}% allocated)`);
+    }
+    
+    // Check for future payment dates that might be invalid
+    const currentDate = new Date();
+    const invalidDates = paymentSchedule.installments.filter(inst => 
+      inst.paymentDate < paymentSchedule.leaseStartDate
+    );
+    if (invalidDates.length > 0) {
+      validationErrors.push(`${invalidDates.length} payment(s) scheduled before lease start date`);
+      isValid = false;
+    }
+    
+    // Debug logging with enhanced info
+    console.log('Payment Schedule Validation:', {
       totalNPV,
       totalPresentValue,
       totalAmount,
       totalPercentage,
       remainingPresentValue,
-      isValid
+      percentageAllocated,
+      isValid,
+      isIncomplete,
+      validationErrors,
+      installmentCount: paymentSchedule.installments.length
     });
     
     return {
@@ -59,16 +114,25 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
       totalPercentage,
       totalPresentValue,
       remainingPresentValue,
-      isValid
+      isValid,
+      isIncomplete,
+      validationErrors,
+      percentageAllocated
     };
-  }, [paymentSchedule.installments, totalNPV]);
+  }, [paymentSchedule.installments, totalNPV, paymentSchedule.leaseStartDate]);
 
   const updateSchedule = (installments: PaymentInstallment[]) => {
+    // Recalculate values for the new schedule to avoid circular dependency
+    const newTotalPresentValue = installments.reduce((sum, inst) => sum + inst.presentValue, 0);
+    const newTotalAmount = installments.reduce((sum, inst) => sum + inst.amountDue, 0);
+    const newTotalPercentage = installments.reduce((sum, inst) => sum + inst.percentageOfDeal, 0);
+    const newRemainingAmount = Math.max(0, totalNPV - newTotalPresentValue);
+    
     const newSchedule: PaymentSchedule = {
       installments,
-      totalPercentage: calculatedValues.totalPercentage,
-      totalAmount: calculatedValues.totalAmount,
-      remainingAmount: calculatedValues.remainingPresentValue,
+      totalPercentage: newTotalPercentage,
+      totalAmount: newTotalAmount,
+      remainingAmount: newRemainingAmount,
       leaseStartDate: paymentSchedule.leaseStartDate
     };
     onUpdateSchedule(newSchedule);
@@ -191,6 +255,9 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
             remainingAmount={calculatedValues.remainingPresentValue}
             isValid={calculatedValues.isValid}
             totalPresentValue={calculatedValues.totalPresentValue}
+            isIncomplete={calculatedValues.isIncomplete}
+            validationErrors={calculatedValues.validationErrors}
+            percentageAllocated={calculatedValues.percentageAllocated}
           />
 
           {isExpanded && (
