@@ -34,9 +34,14 @@ const CurrencySelector: React.FC = () => {
         <Select value={selectedCurrency.code} onValueChange={handleCurrencyChange}>
           <SelectTrigger className="w-full">
             <SelectValue>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{selectedCurrency.symbol}</span>
-                <span className="text-sm">{selectedCurrency.code}</span>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-lg min-w-[2rem] text-center">
+                  {selectedCurrency.code === 'XOF' ? '₣' : selectedCurrency.symbol}
+                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{selectedCurrency.code}</span>
+                  <span className="text-xs text-gray-500">{selectedCurrency.name}</span>
+                </div>
               </div>
             </SelectValue>
           </SelectTrigger>
@@ -44,11 +49,15 @@ const CurrencySelector: React.FC = () => {
             {currencies.map((currency) => (
               <SelectItem key={currency.code} value={currency.code}>
                 <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{currency.symbol}</span>
-                    <span className="text-sm">{currency.code}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-lg min-w-[2rem] text-center">
+                      {currency.code === 'XOF' ? '₣' : currency.symbol}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{currency.code}</span>
+                      <span className="text-xs text-gray-500">{currency.name}</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-500 ml-2">{currency.name}</span>
                 </div>
               </SelectItem>
             ))}

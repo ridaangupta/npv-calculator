@@ -33,13 +33,7 @@ interface CurrencyContextType {
 const currencies: Currency[] = [
   { code: 'USD', name: 'US Dollar', symbol: '$', symbolNative: '$', decimalDigits: 2 },
   { code: 'EUR', name: 'Euro', symbol: '€', symbolNative: '€', decimalDigits: 2 },
-  { code: 'AED', name: 'UAE Dirham', symbol: 'AED', symbolNative: 'د.إ', decimalDigits: 2 },
-  { code: 'XOF', name: 'CFA Franc', symbol: 'CFA', symbolNative: 'CFA', decimalDigits: 0 },
-  { code: 'GBP', name: 'British Pound', symbol: '£', symbolNative: '£', decimalDigits: 2 },
-  { code: 'JPY', name: 'Japanese Yen', symbol: '¥', symbolNative: '¥', decimalDigits: 0 },
-  { code: 'CAD', name: 'Canadian Dollar', symbol: 'CAD', symbolNative: '$', decimalDigits: 2 },
-  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', symbolNative: '₦', decimalDigits: 2 },
-  { code: 'ZAR', name: 'South African Rand', symbol: 'R', symbolNative: 'R', decimalDigits: 2 },
+  { code: 'XOF', name: 'CFA Franc BCEAO', symbol: 'CFA', symbolNative: 'F CFA', decimalDigits: 0 },
 ];
 
 const CACHE_KEY = 'npv_calculator_exchange_rates';
@@ -114,13 +108,7 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
       const fallbackRates = {
         USD: 1,
         EUR: 0.85,
-        AED: 3.67,
         XOF: 600,
-        GBP: 0.73,
-        JPY: 110,
-        CAD: 1.25,
-        NGN: 460,
-        ZAR: 15.5,
       };
       setExchangeRates(fallbackRates);
       setLastUpdated(new Date());
@@ -155,13 +143,23 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
   const formatCurrency = useMemo(() => {
     return (amount: number): string => {
       const convertedAmount = convertFromUSD(amount);
+      
+      // Special handling for CFA Franc
+      if (selectedCurrency.code === 'XOF') {
+        const formatted = new Intl.NumberFormat('fr-FR', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(Math.round(convertedAmount));
+        return `${formatted} ${selectedCurrency.symbolNative}`;
+      }
+      
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: selectedCurrency.code,
         minimumFractionDigits: selectedCurrency.decimalDigits,
         maximumFractionDigits: selectedCurrency.decimalDigits,
         currencyDisplay: 'symbol'
-      }).format(convertedAmount).replace(/[A-Z]{3}/, selectedCurrency.symbol);
+      }).format(convertedAmount);
     };
   }, [convertFromUSD, selectedCurrency]);
 
