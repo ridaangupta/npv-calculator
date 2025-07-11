@@ -24,9 +24,9 @@ const PaymentScheduleListMemo: React.FC<PaymentScheduleListProps> = memo(({
   discountRate
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="text-lg font-semibold text-gray-800">
+        <h4 className="text-base sm:text-lg font-semibold text-gray-800">
           Payment Installments ({installments.length})
         </h4>
       </div>

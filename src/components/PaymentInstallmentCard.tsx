@@ -32,22 +32,23 @@ const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
 
   return (
     <Card className="relative bg-white border border-gray-200 hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex justify-between items-start mb-4">
-          <h4 className="font-semibold text-gray-800">
+          <h4 className="font-semibold text-gray-800 text-sm sm:text-base">
             {installment.description || `Payment ${installment.id}`}
           </h4>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onRemove(installment.id)}
-            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            className="text-red-500 hover:text-red-700 hover:bg-red-50 min-h-[36px] ml-2"
+            aria-label="Remove payment installment"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <PaymentDateInput
             paymentDate={installment.paymentDate}
             onUpdateDate={(date) => onUpdateDate(installment.id, date)}

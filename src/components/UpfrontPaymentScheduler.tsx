@@ -29,7 +29,8 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
   onUpdateSchedule,
   discountRate
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  // Auto-expand when there are installments for better mobile UX
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // Calculate derived values using Present Value Equivalence Method
   const calculatedValues = useMemo(() => {
@@ -168,7 +169,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
           onToggleExpanded={() => setIsExpanded(!isExpanded)}
         />
         
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="mb-6 space-y-2">
             <Label htmlFor="lease-start-date" className="text-sm font-medium text-gray-700">
               Lease Start Date
@@ -178,7 +179,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
               type="date"
               value={format(paymentSchedule.leaseStartDate, 'yyyy-MM-dd')}
               onChange={(e) => updateLeaseStartDate(e.target.value)}
-              className="w-full"
+              className="w-full min-h-[40px]"
             />
           </div>
 
@@ -193,7 +194,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
           />
 
           {isExpanded && (
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-3 sm:space-y-4">
               {paymentSchedule.installments.length === 0 ? (
                 <PaymentScheduleEmpty onAddInstallment={addInstallment} />
               ) : (
