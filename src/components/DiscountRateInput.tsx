@@ -1,6 +1,8 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { AlertCircle } from 'lucide-react';
 
 interface DiscountRateInputProps {
   discountRate: string;
@@ -15,20 +17,52 @@ const DiscountRateInput: React.FC<DiscountRateInputProps> = ({
     onDiscountRateChange(e.target.value);
   }, [onDiscountRateChange]);
 
+  const validation = useMemo(() => {
+    const rate = Number(discountRate || 0);
+    if (discountRate === '' || discountRate === '0') {
+      return { isValid: false, message: 'Discount rate is required' };
+    }
+    if (rate < 0) {
+      return { isValid: false, message: 'Discount rate cannot be negative' };
+    }
+    if (rate > 100) {
+      return { isValid: false, message: 'Discount rate seems unusually high' };
+    }
+    return { isValid: true, message: '' };
+  }, [discountRate]);
+
   return (
     <div className="space-y-2">
       <Label htmlFor="discount-rate" className="text-sm font-medium text-gray-700">
         Discount Rate (%)
       </Label>
-      <input
-        id="discount-rate"
-        type="number"
-        value={discountRate}
-        onChange={handleChange}
-        placeholder="Enter discount rate"
-        step="0.01"
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-      />
+      <div className="relative">
+        <Input
+          id="discount-rate"
+          type="number"
+          value={discountRate}
+          onChange={handleChange}
+          placeholder="Enter discount rate (e.g., 10)"
+          step="0.01"
+          min="0"
+          max="100"
+          className={`text-lg ${!validation.isValid && discountRate !== '' ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+        />
+        {!validation.isValid && discountRate !== '' && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <AlertCircle className="w-4 h-4 text-red-500" />
+          </div>
+        )}
+      </div>
+      {!validation.isValid && discountRate !== '' && (
+        <p className="text-xs text-red-600 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {validation.message}
+        </p>
+      )}
+      <p className="text-xs text-gray-500">
+        The discount rate reflects the cost of capital or required return rate
+      </p>
     </div>
   );
 };

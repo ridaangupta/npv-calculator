@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { AlertCircle } from 'lucide-react';
 
 interface CashFlowConfigurationProps {
   baseCashFlow: string;
@@ -150,9 +151,20 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
             onBlur={handleBaseCashFlowBlur}
             placeholder={`Enter initial lease rent per square meter in ${selectedCurrency.code}`}
             step="0.01"
-            className="text-lg pl-8"
+            className={`text-lg pl-8 ${Number(baseCashFlow || 0) <= 0 && baseCashFlow !== '' ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
           />
+          {Number(baseCashFlow || 0) <= 0 && baseCashFlow !== '' && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <AlertCircle className="w-4 h-4 text-red-500" />
+            </div>
+          )}
         </div>
+        {Number(baseCashFlow || 0) <= 0 && baseCashFlow !== '' && (
+          <p className="text-xs text-red-600 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            Initial lease rent must be greater than zero
+          </p>
+        )}
         <p className="text-xs text-gray-500">
           This will be automatically converted to hectares (1 hectare = 10,000 m²)
         </p>
@@ -244,16 +256,32 @@ const CashFlowConfiguration: React.FC<CashFlowConfigurationProps> = ({
         <Label htmlFor="time-period" className="text-sm font-medium text-gray-600">
           Time Period (Years)
         </Label>
-        <Input
-          id="time-period"
-          type="number"
-          value={timePeriod}
-          onChange={(e) => onTimePeriodChange(e.target.value)}
-          placeholder="Enter time period"
-          min="0.1"
-          step="0.1"
-          className="text-lg"
-        />
+        <div className="relative">
+          <Input
+            id="time-period"
+            type="number"
+            value={timePeriod}
+            onChange={(e) => onTimePeriodChange(e.target.value)}
+            placeholder="Enter time period (e.g., 25)"
+            min="0.1"
+            step="0.1"
+            className={`text-lg ${Number(timePeriod || 0) <= 0 && timePeriod !== '' ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+          />
+          {Number(timePeriod || 0) <= 0 && timePeriod !== '' && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <AlertCircle className="w-4 h-4 text-red-500" />
+            </div>
+          )}
+        </div>
+        {Number(timePeriod || 0) <= 0 && timePeriod !== '' && (
+          <p className="text-xs text-red-600 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            Time period must be greater than zero
+          </p>
+        )}
+        <p className="text-xs text-gray-500">
+          The lease duration for calculating cash flows and present value
+        </p>
       </div>
 
       <div className="space-y-3">

@@ -101,10 +101,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-800">
-                {increaseType === 'percent' ? `${increaseValue}%` : formatCurrency(increaseValue)}
+                {increaseType === 'percent' ? `${increaseValue}%` : `${formatCurrency(increaseValue)}/m²`}
               </div>
               <div className="text-sm text-gray-600">
-                {increaseType === 'percent' ? 'Increase Rate' : 'Increase Amount'}
+                {increaseType === 'percent' ? 'Increase Rate' : 'Increase Amount per m²'}
               </div>
             </div>
             <div className="text-center">
