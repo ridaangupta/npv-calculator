@@ -1,5 +1,5 @@
 
-import NPVCalculator from "@/components/NPVCalculator";
+import UpfrontLeaseCalculator from "@/components/UpfrontLeaseCalculator";
 
 const Index = () => {
   return (
@@ -7,15 +7,15 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-800 mb-4">
-            NPV Calculator
+            Upfront Lease Amount Calculator
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Calculate the Net Present Value of your investments and projects. 
-            Make informed financial decisions with precise NPV analysis.
+            Calculate upfront lease amounts with customizable payment schedules. 
+            Make informed leasing decisions with precise financial analysis.
           </p>
         </div>
         
-        <NPVCalculator />
+        <UpfrontLeaseCalculator />
       </div>
     </div>
   );
