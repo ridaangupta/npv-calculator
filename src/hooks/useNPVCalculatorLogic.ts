@@ -21,6 +21,7 @@ export const useNPVCalculatorLogic = () => {
   const [timePeriodInput, setTimePeriodInput] = useState<string>('5');
   const [totalHectaresInput, setTotalHectaresInput] = useState<string>('1');
   const [paymentTiming, setPaymentTiming] = useState<'beginning' | 'middle' | 'end'>('end');
+  const [paymentType, setPaymentType] = useState<'normal' | 'custom'>('normal');
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [npv, setNpv] = useState<number>(0);
   const [paymentSchedule, setPaymentSchedule] = useState<PaymentSchedule>({
@@ -81,6 +82,10 @@ export const useNPVCalculatorLogic = () => {
     setPaymentTiming(value);
   }, []);
 
+  const handlePaymentTypeChange = useCallback((value: 'normal' | 'custom') => {
+    setPaymentType(value);
+  }, []);
+
   const handlePaymentScheduleChange = useCallback((schedule: PaymentSchedule) => {
     setPaymentSchedule(schedule);
   }, []);
@@ -130,6 +135,7 @@ export const useNPVCalculatorLogic = () => {
     timePeriodInput,
     totalHectaresInput,
     paymentTiming,
+    paymentType,
     cashFlows,
     npv,
     paymentSchedule,
@@ -144,6 +150,7 @@ export const useNPVCalculatorLogic = () => {
     handleTimePeriodChange,
     handleTotalHectaresChange,
     handlePaymentTimingChange,
+    handlePaymentTypeChange,
     handlePaymentScheduleChange
   };
 };

@@ -16,6 +16,7 @@ const MobileNPVCalculator: React.FC = () => {
     timePeriodInput,
     totalHectaresInput,
     paymentTiming,
+    paymentType,
     cashFlows,
     npv,
     paymentSchedule,
@@ -28,18 +29,16 @@ const MobileNPVCalculator: React.FC = () => {
     handleTimePeriodChange,
     handleTotalHectaresChange,
     handlePaymentTimingChange,
+    handlePaymentTypeChange,
     handlePaymentScheduleChange
   } = useNPVCalculatorLogic();
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <Tabs defaultValue="input" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="input" className="text-sm font-medium">
             Input
-          </TabsTrigger>
-          <TabsTrigger value="schedule" className="text-sm font-medium">
-            Schedule
           </TabsTrigger>
           <TabsTrigger value="results" className="text-sm font-medium">
             Results
@@ -56,7 +55,11 @@ const MobileNPVCalculator: React.FC = () => {
             timePeriodInput={timePeriodInput}
             totalHectaresInput={totalHectaresInput}
             paymentTiming={paymentTiming}
+            paymentType={paymentType}
             cashFlows={cashFlows}
+            npv={npv}
+            paymentSchedule={paymentSchedule}
+            discountRate={numericValues.discountRate}
             onDiscountRateChange={handleDiscountRateChange}
             onBaseCashFlowChange={handleBaseCashFlowChange}
             onIncreaseValueChange={handleIncreaseValueChange}
@@ -65,15 +68,8 @@ const MobileNPVCalculator: React.FC = () => {
             onTimePeriodChange={handleTimePeriodChange}
             onTotalHectaresChange={handleTotalHectaresChange}
             onPaymentTimingChange={handlePaymentTimingChange}
-          />
-        </TabsContent>
-
-        <TabsContent value="schedule" className="space-y-6">
-          <UpfrontPaymentScheduler
-            totalNPV={npv * numericValues.totalHectares}
-            paymentSchedule={paymentSchedule}
-            onUpdateSchedule={handlePaymentScheduleChange}
-            discountRate={numericValues.discountRate}
+            onPaymentTypeChange={handlePaymentTypeChange}
+            onPaymentScheduleChange={handlePaymentScheduleChange}
           />
         </TabsContent>
         

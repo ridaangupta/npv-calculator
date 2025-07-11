@@ -15,6 +15,7 @@ const DesktopNPVCalculator: React.FC = () => {
     timePeriodInput,
     totalHectaresInput,
     paymentTiming,
+    paymentType,
     cashFlows,
     npv,
     paymentSchedule,
@@ -27,6 +28,7 @@ const DesktopNPVCalculator: React.FC = () => {
     handleTimePeriodChange,
     handleTotalHectaresChange,
     handlePaymentTimingChange,
+    handlePaymentTypeChange,
     handlePaymentScheduleChange
   } = useNPVCalculatorLogic();
 
@@ -44,7 +46,11 @@ const DesktopNPVCalculator: React.FC = () => {
             timePeriodInput={timePeriodInput}
             totalHectaresInput={totalHectaresInput}
             paymentTiming={paymentTiming}
+            paymentType={paymentType}
             cashFlows={cashFlows}
+            npv={npv}
+            paymentSchedule={paymentSchedule}
+            discountRate={numericValues.discountRate}
             onDiscountRateChange={handleDiscountRateChange}
             onBaseCashFlowChange={handleBaseCashFlowChange}
             onIncreaseValueChange={handleIncreaseValueChange}
@@ -53,6 +59,8 @@ const DesktopNPVCalculator: React.FC = () => {
             onTimePeriodChange={handleTimePeriodChange}
             onTotalHectaresChange={handleTotalHectaresChange}
             onPaymentTimingChange={handlePaymentTimingChange}
+            onPaymentTypeChange={handlePaymentTypeChange}
+            onPaymentScheduleChange={handlePaymentScheduleChange}
           />
         </div>
 
@@ -72,15 +80,17 @@ const DesktopNPVCalculator: React.FC = () => {
         />
       </div>
 
-      {/* Payment Schedule Section - Full Width Below */}
-      <div className="w-full">
-        <UpfrontPaymentScheduler
-          totalNPV={npv * numericValues.totalHectares}
-          paymentSchedule={paymentSchedule}
-          onUpdateSchedule={handlePaymentScheduleChange}
-          discountRate={numericValues.discountRate}
-        />
-      </div>
+      {/* Payment Schedule Section - Full Width Below (only for custom payment type) */}
+      {paymentType === 'custom' && (
+        <div className="w-full">
+          <UpfrontPaymentScheduler
+            totalNPV={npv * numericValues.totalHectares}
+            paymentSchedule={paymentSchedule}
+            onUpdateSchedule={handlePaymentScheduleChange}
+            discountRate={numericValues.discountRate}
+          />
+        </div>
+      )}
     </div>
   );
 };
