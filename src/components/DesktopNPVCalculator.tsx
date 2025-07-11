@@ -2,7 +2,6 @@
 import React from 'react';
 import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
-import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
 import { useNPVCalculatorLogic } from '@/hooks/useNPVCalculatorLogic';
 
 const DesktopNPVCalculator: React.FC = () => {
@@ -79,18 +78,6 @@ const DesktopNPVCalculator: React.FC = () => {
           onPaymentScheduleChange={handlePaymentScheduleChange}
         />
       </div>
-
-      {/* Payment Schedule Section - Full Width Below (only for custom payment type) */}
-      {paymentType === 'custom' && (
-        <div className="w-full">
-          <UpfrontPaymentScheduler
-            totalNPV={npv * numericValues.totalHectares}
-            paymentSchedule={paymentSchedule}
-            onUpdateSchedule={handlePaymentScheduleChange}
-            discountRate={numericValues.discountRate}
-          />
-        </div>
-      )}
     </div>
   );
 };
