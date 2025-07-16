@@ -6,6 +6,7 @@ import { TrendingUp, DollarSign, Calculator, BarChart, AlertTriangle, Info } fro
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { PaymentSchedule } from '@/types/PaymentSchedule';
 import ValidationAlert from './ValidationAlert';
+import ExportResults from './ExportResults';
 
 interface CashFlow {
   id: string;
@@ -199,6 +200,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Export Results */}
+      <ExportResults
+        npv={npv}
+        totalHectares={totalHectares}
+        baseCashFlow={baseCashFlow}
+        increaseValue={increaseValue}
+        increaseType={increaseType}
+        paymentTiming={paymentTiming}
+      />
     </div>
   );
 };
