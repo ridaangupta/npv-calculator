@@ -1,7 +1,6 @@
-
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
 import CurrencyInput from './CurrencyInput';
 import DiscountRateInput from './DiscountRateInput';
 import CashFlowConfiguration from './CashFlowConfiguration';
@@ -9,6 +8,9 @@ import CashFlowPreview from './CashFlowPreview';
 import HectaresInput from './HectaresInput';
 import PaymentTypeSelector from './PaymentTypeSelector';
 import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
+import ProgressIndicator from './ProgressIndicator';
+import ValidationSummary from './ValidationSummary';
+import useFormValidation from '@/hooks/useFormValidation';
 
 interface CashFlow {
   id: string;
@@ -77,53 +79,116 @@ const InputSection: React.FC<InputSectionProps> = ({
 }) => {
   const totalNPV = npv * Number(totalHectaresInput || 1);
 
+  // Comprehensive validation
+  const validation = useFormValidation({
+    discountRateInput,
+    baseCashFlowInput,
+    increaseValueInput,
+    increaseType,
+    timePeriodInput,
+    totalHectaresInput,
+    paymentType,
+    paymentSchedule,
+    cashFlows,
+    npv
+  });
+
+  const getCurrentStep = () => {
+    if (validation.errors.find(e => e.field === 'baseCashFlow')) return 'Base Cash Flow';
+    if (validation.errors.find(e => e.field === 'totalHectares')) return 'Property Size';
+    if (validation.errors.find(e => e.field === 'discountRate')) return 'Discount Rate';
+    if (validation.errors.find(e => e.field === 'increaseValue')) return 'Growth Parameters';
+    if (validation.errors.find(e => e.field === 'timePeriod')) return 'Time Period';
+    if (validation.errors.find(e => e.field === 'paymentSchedule')) return 'Payment Schedule';
+    return 'Configuration Complete';
+  };
+
+  const totalSteps = paymentType === 'custom' ? 8 : 6;
+  const completedSteps = Math.floor((validation.completionPercentage / 100) * totalSteps);
+
   return (
-    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-      <CardContent className="p-6 space-y-6">
-        <CurrencyInput />
+    <div className="space-y-6">
+      {/* Progress Indicator */}
+      <ProgressIndicator
+        completionPercentage={validation.completionPercentage}
+        totalSteps={totalSteps}
+        completedSteps={completedSteps}
+        currentStep={getCurrentStep()}
+        errors={validation.errors.length}
+        warnings={validation.warnings.length}
+        isValid={validation.isValid}
+      />
 
-        <DiscountRateInput
-          discountRate={discountRateInput}
-          onDiscountRateChange={onDiscountRateChange}
-        />
+      {/* Validation Summary */}
+      <ValidationSummary
+        errors={validation.errors}
+        warnings={validation.warnings}
+      />
 
-        <CashFlowConfiguration
-          baseCashFlow={baseCashFlowInput}
-          increaseValue={increaseValueInput}
-          increaseType={increaseType}
-          increaseFrequency={increaseFrequency}
-          timePeriod={timePeriodInput}
-          paymentTiming={paymentTiming}
-          onBaseCashFlowChange={onBaseCashFlowChange}
-          onIncreaseValueChange={onIncreaseValueChange}
-          onIncreaseTypeChange={onIncreaseTypeChange}
-          onIncreaseFrequencyChange={onIncreaseFrequencyChange}
-          onTimePeriodChange={onTimePeriodChange}
-          onPaymentTimingChange={onPaymentTimingChange}
-        />
+      {/* Main Input Card */}
+      <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+        <CardContent className="p-6 space-y-6">
+          <CurrencyInput />
 
-        <CashFlowPreview cashFlows={cashFlows} />
-
-        <HectaresInput
-          totalHectares={totalHectaresInput}
-          onTotalHectaresChange={onTotalHectaresChange}
-        />
-
-        <PaymentTypeSelector
-          paymentType={paymentType}
-          onPaymentTypeChange={onPaymentTypeChange}
-        />
-
-        {paymentType === 'custom' && (
-          <UpfrontPaymentScheduler
-            totalNPV={totalNPV}
-            paymentSchedule={paymentSchedule}
-            onUpdateSchedule={onPaymentScheduleChange}
-            discountRate={discountRate}
+          <DiscountRateInput
+            discountRate={discountRateInput}
+            onDiscountRateChange={onDiscountRateChange}
           />
-        )}
-      </CardContent>
-    </Card>
+
+          <CashFlowConfiguration
+            baseCashFlow={baseCashFlowInput}
+            increaseValue={increaseValueInput}
+            increaseType={increaseType}
+            increaseFrequency={increaseFrequency}
+            timePeriod={timePeriodInput}
+            paymentTiming={paymentTiming}
+            onBaseCashFlowChange={onBaseCashFlowChange}
+            onIncreaseValueChange={onIncreaseValueChange}
+            onIncreaseTypeChange={onIncreaseTypeChange}
+            onIncreaseFrequencyChange={onIncreaseFrequencyChange}
+            onTimePeriodChange={onTimePeriodChange}
+            onPaymentTimingChange={onPaymentTimingChange}
+          />
+
+          <CashFlowPreview cashFlows={cashFlows} />
+
+          <HectaresInput
+            totalHectares={totalHectaresInput}
+            onTotalHectaresChange={onTotalHectaresChange}
+          />
+
+          <PaymentTypeSelector
+            paymentType={paymentType}
+            onPaymentTypeChange={onPaymentTypeChange}
+          />
+
+          {paymentType === 'custom' && (
+            <UpfrontPaymentScheduler
+              totalNPV={totalNPV}
+              paymentSchedule={paymentSchedule}
+              onUpdateSchedule={onPaymentScheduleChange}
+              discountRate={discountRate}
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Prevent Incomplete Submissions */}
+      {!validation.isValid && (
+        <Card className="shadow-lg border-0 bg-red-50/80 backdrop-blur-sm border-red-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-red-800">
+              <AlertCircle className="w-5 h-5" />
+              <span className="font-medium">Configuration Incomplete</span>
+            </div>
+            <p className="text-sm text-red-700 mt-2">
+              Please resolve all validation errors before proceeding with calculations. 
+              Complete configuration progress: {validation.completionPercentage}%
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
@@ -163,4 +228,3 @@ const arePropsEqual = (prevProps: InputSectionProps, nextProps: InputSectionProp
 };
 
 export default React.memo(InputSection, arePropsEqual);
-
