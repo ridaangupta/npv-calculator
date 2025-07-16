@@ -29,21 +29,24 @@ const ExportResults: React.FC<ExportResultsProps> = ({
     const npvPerSquareMeter = npv / 10000;
     const totalInvestment = npv * totalHectares;
     
-    return `📊 UPFRONT LEASE VALUATION RESULTS
+    return `UPFRONT LEASE VALUATION ANALYSIS
 
-🏢 Deal Value Summary:
-• Per Square Meter: ${formatCurrency(Math.max(0, npvPerSquareMeter))}
-• Per Hectare: ${formatCurrency(Math.max(0, npv))}
-• Total Investment Required: ${formatCurrency(Math.max(0, totalInvestment))}
+EXECUTIVE SUMMARY
+This analysis presents the present value of projected lease payments for informed investment decision-making.
 
-📋 Lease Terms:
-• Starting Annual Payment: ${formatCurrency(baseCashFlow)} per m²
-• Annual Increase: ${increaseType === 'percent' ? `${increaseValue}%` : formatCurrency(increaseValue)} ${increaseType === 'percent' ? 'rate' : 'amount'}
-• Payment Timing: ${paymentTiming.charAt(0).toUpperCase() + paymentTiming.slice(1)} of year
-• Total Area: ${totalHectares} hectare(s)
+KEY FINANCIAL METRICS
+Deal Value per Square Meter: ${formatCurrency(Math.max(0, npvPerSquareMeter))}
+Deal Value per Hectare: ${formatCurrency(Math.max(0, npv))}
+Total Investment Required: ${formatCurrency(Math.max(0, totalInvestment))}
 
-📈 Investment Analysis:
-This upfront lease valuation represents the present value of projected future lease payments, helping you make informed investment decisions based on current market conditions.`;
+LEASE STRUCTURE
+Property Size: ${totalHectares} hectare(s)
+Initial Annual Payment: ${formatCurrency(baseCashFlow)} per square meter
+Annual Escalation: ${increaseType === 'percent' ? `${increaseValue}% annually` : `${formatCurrency(increaseValue)} per square meter annually`}
+Payment Schedule: ${paymentTiming.charAt(0).toUpperCase() + paymentTiming.slice(1)} of year
+
+INVESTMENT OVERVIEW
+The calculated upfront lease value represents the net present value of all future lease payments, providing a comprehensive assessment of the investment opportunity based on current market conditions and projected cash flows.`;
   };
 
   const handleCopyToClipboard = async () => {
@@ -93,28 +96,33 @@ This upfront lease valuation represents the present value of projected future le
       </head>
       <body>
         <div class="header">
-          <h1>Upfront Lease Valuation Results</h1>
-          <p>Investment Analysis Report</p>
+          <h1>Upfront Lease Valuation Analysis</h1>
+          <p>Executive Investment Summary</p>
         </div>
         
         <div class="section">
-          <h2>Deal Value Summary</h2>
-          <p><span class="label">Per Square Meter:</span><span class="value">${formatCurrency(Math.max(0, npv / 10000))}</span></p>
-          <p><span class="label">Per Hectare:</span><span class="value">${formatCurrency(Math.max(0, npv))}</span></p>
+          <h2>Executive Summary</h2>
+          <p>This analysis presents the present value of projected lease payments for informed investment decision-making.</p>
+        </div>
+        
+        <div class="section">
+          <h2>Key Financial Metrics</h2>
+          <p><span class="label">Deal Value per Square Meter:</span><span class="value">${formatCurrency(Math.max(0, npv / 10000))}</span></p>
+          <p><span class="label">Deal Value per Hectare:</span><span class="value">${formatCurrency(Math.max(0, npv))}</span></p>
           <p><span class="label">Total Investment Required:</span><span class="value">${formatCurrency(Math.max(0, npv * totalHectares))}</span></p>
         </div>
         
         <div class="section">
-          <h2>Lease Terms</h2>
-          <p><span class="label">Starting Annual Payment:</span><span class="value">${formatCurrency(baseCashFlow)} per m²</span></p>
-          <p><span class="label">Annual Increase:</span><span class="value">${increaseType === 'percent' ? `${increaseValue}%` : formatCurrency(increaseValue)} ${increaseType === 'percent' ? 'rate' : 'amount'}</span></p>
-          <p><span class="label">Payment Timing:</span><span class="value">${paymentTiming.charAt(0).toUpperCase() + paymentTiming.slice(1)} of year</span></p>
-          <p><span class="label">Total Area:</span><span class="value">${totalHectares} hectare(s)</span></p>
+          <h2>Lease Structure</h2>
+          <p><span class="label">Property Size:</span><span class="value">${totalHectares} hectare(s)</span></p>
+          <p><span class="label">Initial Annual Payment:</span><span class="value">${formatCurrency(baseCashFlow)} per square meter</span></p>
+          <p><span class="label">Annual Escalation:</span><span class="value">${increaseType === 'percent' ? `${increaseValue}% annually` : `${formatCurrency(increaseValue)} per square meter annually`}</span></p>
+          <p><span class="label">Payment Schedule:</span><span class="value">${paymentTiming.charAt(0).toUpperCase() + paymentTiming.slice(1)} of year</span></p>
         </div>
         
         <div class="section">
-          <h2>Investment Analysis</h2>
-          <p>This upfront lease valuation represents the present value of projected future lease payments, helping you make informed investment decisions based on current market conditions.</p>
+          <h2>Investment Overview</h2>
+          <p>The calculated upfront lease value represents the net present value of all future lease payments, providing a comprehensive assessment of the investment opportunity based on current market conditions and projected cash flows.</p>
         </div>
         
       </body>
