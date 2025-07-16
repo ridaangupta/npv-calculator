@@ -1,5 +1,6 @@
 
 import { differenceInDays } from 'date-fns';
+import { CustomLeaseInstallment } from '@/types/CustomScheduleTypes';
 
 export const calculatePresentValue = (
   futureValue: number,
@@ -54,4 +55,53 @@ export const calculatePercentageFromPresentValue = (
   return totalNPV > 0 ? (presentValue / totalNPV) * 100 : 0;
 };
 
-// Remove the old "furthest date" functions as they're no longer needed
+// Custom Schedule Calculations
+export const calculateCustomInstallmentPresentValue = (
+  dealValue: number,
+  percentage: number,
+  leaseStartDate: Date,
+  paymentDate: Date,
+  discountRate: number
+): number => {
+  const amount = dealValue * (percentage / 100);
+  const days = differenceInDays(paymentDate, leaseStartDate);
+  
+  if (days <= 0) {
+    return amount;
+  }
+  
+  const discountFactor = Math.pow(1 + discountRate / 100 / 365, days);
+  return amount / discountFactor;
+};
+
+export const calculateCustomScheduleInstallments = (
+  dealValue: number,
+  leaseStartDate: Date,
+  discountRate: number,
+  installments: Array<{ id: string; paymentDate: Date; percentage: number }>
+): CustomLeaseInstallment[] => {
+  return installments.map(installment => {
+    const amount = dealValue * (installment.percentage / 100);
+    const daysFromStart = differenceInDays(installment.paymentDate, leaseStartDate);
+    const presentValue = calculateCustomInstallmentPresentValue(
+      dealValue,
+      installment.percentage,
+      leaseStartDate,
+      installment.paymentDate,
+      discountRate
+    );
+    
+    return {
+      id: installment.id,
+      paymentDate: installment.paymentDate,
+      percentage: installment.percentage,
+      amount,
+      presentValue,
+      daysFromStart: Math.max(0, daysFromStart)
+    };
+  });
+};
+
+export const calculateCustomScheduleNPV = (installments: CustomLeaseInstallment[]): number => {
+  return installments.reduce((total, installment) => total + installment.presentValue, 0);
+};
