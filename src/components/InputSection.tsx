@@ -8,7 +8,7 @@ import CashFlowPreview from './CashFlowPreview';
 import HectaresInput from './HectaresInput';
 import PaymentTypeSelector from './PaymentTypeSelector';
 import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
-import ProgressIndicator from './ProgressIndicator';
+
 import ValidationSummary from './ValidationSummary';
 import useFormValidation from '@/hooks/useFormValidation';
 
@@ -116,17 +116,6 @@ const InputSection: React.FC<InputSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Progress Indicator */}
-      <ProgressIndicator
-        completionPercentage={validation.completionPercentage}
-        totalSteps={totalSteps}
-        completedSteps={completedSteps}
-        currentStep={getCurrentStep()}
-        errors={validation.errors.length}
-        warnings={validation.warnings.length}
-        isValid={validation.isValid}
-      />
-
       {/* Validation Summary */}
       <ValidationSummary
         errors={validation.errors}
