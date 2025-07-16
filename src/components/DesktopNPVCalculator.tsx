@@ -2,6 +2,7 @@
 import React from 'react';
 import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
+import ExecutiveSummary from './ExecutiveSummary';
 import { useNPVCalculatorLogic } from '@/hooks/useNPVCalculatorLogic';
 
 const DesktopNPVCalculator: React.FC = () => {
@@ -33,6 +34,16 @@ const DesktopNPVCalculator: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Executive Summary */}
+      <ExecutiveSummary
+        npv={npv}
+        totalHectares={numericValues.totalHectares}
+        totalInvestment={npv * numericValues.totalHectares}
+        paymentScheduleComplete={paymentSchedule.totalPercentage >= 95}
+        percentageAllocated={paymentSchedule.totalPercentage}
+        paymentCount={paymentSchedule.installments.length}
+      />
+      
       <div className="grid md:grid-cols-2 gap-8">
         {/* Input Section */}
         <div className="space-y-6">

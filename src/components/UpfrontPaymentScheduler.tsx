@@ -1,8 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Plus } from 'lucide-react';
 import { PaymentInstallment, PaymentSchedule } from '@/types/PaymentSchedule';
 import PaymentScheduleSummary from './PaymentScheduleSummary';
 import PaymentScheduleHeader from './PaymentScheduleHeader';
@@ -265,16 +267,30 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
               {paymentSchedule.installments.length === 0 ? (
                 <PaymentScheduleEmpty onAddInstallment={addInstallment} />
               ) : (
-                <PaymentScheduleList
-                  installments={paymentSchedule.installments}
-                  totalNPV={totalNPV}
-                  onUpdateAmount={updateInstallmentAmount}
-                  onUpdatePercentage={updateInstallmentPercentage}
-                  onUpdateDate={updateInstallmentDate}
-                  onRemove={removeInstallment}
-                  leaseStartDate={paymentSchedule.leaseStartDate}
-                  discountRate={discountRate}
-                />
+                <>
+                  <PaymentScheduleList
+                    installments={paymentSchedule.installments}
+                    totalNPV={totalNPV}
+                    onUpdateAmount={updateInstallmentAmount}
+                    onUpdatePercentage={updateInstallmentPercentage}
+                    onUpdateDate={updateInstallmentDate}
+                    onRemove={removeInstallment}
+                    leaseStartDate={paymentSchedule.leaseStartDate}
+                    discountRate={discountRate}
+                  />
+                  
+                  {/* Add Payment Button at Bottom */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <Button
+                      onClick={addInstallment}
+                      variant="outline"
+                      className="w-full sm:w-auto flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Payment Installment
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
           )}

@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
+import ExecutiveSummary from './ExecutiveSummary';
 import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
 import { useNPVCalculatorLogic } from '@/hooks/useNPVCalculatorLogic';
 
@@ -35,17 +36,31 @@ const MobileNPVCalculator: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Tabs defaultValue="input" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="input" className="text-sm font-medium">
-            Input
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="overview" className="text-sm font-medium">
+            Overview
           </TabsTrigger>
-          <TabsTrigger value="results" className="text-sm font-medium">
-            Results
+          <TabsTrigger value="configuration" className="text-sm font-medium">
+            Configuration
+          </TabsTrigger>
+          <TabsTrigger value="analysis" className="text-sm font-medium">
+            Analysis
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="input" className="space-y-6">
+        <TabsContent value="overview" className="space-y-6">
+          <ExecutiveSummary
+            npv={npv}
+            totalHectares={numericValues.totalHectares}
+            totalInvestment={npv * numericValues.totalHectares}
+            paymentScheduleComplete={paymentSchedule.totalPercentage >= 95}
+            percentageAllocated={paymentSchedule.totalPercentage}
+            paymentCount={paymentSchedule.installments.length}
+          />
+        </TabsContent>
+        
+        <TabsContent value="configuration" className="space-y-6">
           <InputSection
             discountRateInput={discountRateInput}
             baseCashFlowInput={baseCashFlowInput}
@@ -73,7 +88,7 @@ const MobileNPVCalculator: React.FC = () => {
           />
         </TabsContent>
         
-        <TabsContent value="results" className="space-y-6">
+        <TabsContent value="analysis" className="space-y-6">
           <ResultsDisplay
             npv={npv}
             totalHectares={numericValues.totalHectares}
