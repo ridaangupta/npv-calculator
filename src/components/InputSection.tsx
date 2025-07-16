@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 import CurrencyInput from './CurrencyInput';
@@ -78,6 +78,13 @@ const InputSection: React.FC<InputSectionProps> = ({
   onPaymentScheduleChange
 }) => {
   const totalValue = leaseValue * Number(totalHectaresInput || 1);
+  
+  // Track touched fields
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+  
+  const handleFieldBlur = (fieldName: string) => {
+    setTouchedFields(prev => new Set(prev).add(fieldName));
+  };
 
   // Comprehensive validation
   const validation = useFormValidation({
@@ -90,7 +97,8 @@ const InputSection: React.FC<InputSectionProps> = ({
     paymentType,
     paymentSchedule,
     cashFlows,
-    leaseValue
+    leaseValue,
+    touchedFields
   });
 
   const getCurrentStep = () => {
@@ -133,6 +141,7 @@ const InputSection: React.FC<InputSectionProps> = ({
           <DiscountRateInput
             discountRate={discountRateInput}
             onDiscountRateChange={onDiscountRateChange}
+            onBlur={() => handleFieldBlur('discountRate')}
           />
 
           <CashFlowConfiguration
@@ -155,6 +164,7 @@ const InputSection: React.FC<InputSectionProps> = ({
           <HectaresInput
             totalHectares={totalHectaresInput}
             onTotalHectaresChange={onTotalHectaresChange}
+            onBlur={() => handleFieldBlur('totalHectares')}
           />
 
           <PaymentTypeSelector

@@ -7,11 +7,13 @@ import { AlertCircle } from 'lucide-react';
 interface DiscountRateInputProps {
   discountRate: string;
   onDiscountRateChange: (value: string) => void;
+  onBlur?: () => void;
 }
 
 const DiscountRateInput: React.FC<DiscountRateInputProps> = ({
   discountRate,
-  onDiscountRateChange
+  onDiscountRateChange,
+  onBlur
 }) => {
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onDiscountRateChange(e.target.value);
@@ -42,6 +44,7 @@ const DiscountRateInput: React.FC<DiscountRateInputProps> = ({
           type="number"
           value={discountRate}
           onChange={handleChange}
+          onBlur={onBlur}
           placeholder="Enter discount rate (e.g., 10)"
           step="0.01"
           min="0"

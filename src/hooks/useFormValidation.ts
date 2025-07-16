@@ -12,6 +12,7 @@ interface UseFormValidationProps {
   paymentSchedule: LeaseSchedule;
   cashFlows: any[];
   leaseValue: number;
+  touchedFields?: Set<string>;
 }
 
 export const useFormValidation = ({
@@ -24,7 +25,8 @@ export const useFormValidation = ({
   paymentType,
   paymentSchedule,
   cashFlows,
-  leaseValue
+  leaseValue,
+  touchedFields = new Set()
 }: UseFormValidationProps): ValidationResult => {
   
   const validation = useMemo(() => {
@@ -35,60 +37,80 @@ export const useFormValidation = ({
 
     // Discount Rate Validation
     const discountRate = Number(discountRateInput);
-    if (!discountRateInput || discountRateInput.trim() === '') {
-      errors.push({ field: 'discountRate', message: 'Discount rate is required', type: 'error' });
-    } else if (isNaN(discountRate) || discountRate < 0) {
-      errors.push({ field: 'discountRate', message: 'Discount rate must be a valid positive number', type: 'error' });
-    } else if (discountRate > 50) {
-      warnings.push({ field: 'discountRate', message: 'Discount rate above 50% is unusually high', type: 'warning' });
-      completedFields++;
-    } else {
+    if (touchedFields.has('discountRate')) {
+      if (!discountRateInput || discountRateInput.trim() === '') {
+        errors.push({ field: 'discountRate', message: 'Discount rate is required', type: 'error' });
+      } else if (isNaN(discountRate) || discountRate < 0) {
+        errors.push({ field: 'discountRate', message: 'Discount rate must be a valid positive number', type: 'error' });
+      } else if (discountRate > 50) {
+        warnings.push({ field: 'discountRate', message: 'Discount rate above 50% is unusually high', type: 'warning' });
+        completedFields++;
+      } else {
+        completedFields++;
+      }
+    } else if (discountRateInput && discountRateInput.trim() !== '' && !isNaN(discountRate) && discountRate >= 0) {
       completedFields++;
     }
 
     // Base Cash Flow Validation
     const baseCashFlow = Number(baseCashFlowInput);
-    if (!baseCashFlowInput || baseCashFlowInput.trim() === '') {
-      errors.push({ field: 'baseCashFlow', message: 'Base cash flow is required', type: 'error' });
-    } else if (isNaN(baseCashFlow) || baseCashFlow <= 0) {
-      errors.push({ field: 'baseCashFlow', message: 'Base cash flow must be greater than 0', type: 'error' });
-    } else {
+    if (touchedFields.has('baseCashFlow')) {
+      if (!baseCashFlowInput || baseCashFlowInput.trim() === '') {
+        errors.push({ field: 'baseCashFlow', message: 'Base cash flow is required', type: 'error' });
+      } else if (isNaN(baseCashFlow) || baseCashFlow <= 0) {
+        errors.push({ field: 'baseCashFlow', message: 'Base cash flow must be greater than 0', type: 'error' });
+      } else {
+        completedFields++;
+      }
+    } else if (baseCashFlowInput && baseCashFlowInput.trim() !== '' && !isNaN(baseCashFlow) && baseCashFlow > 0) {
       completedFields++;
     }
 
     // Increase Value Validation
     const increaseValue = Number(increaseValueInput);
-    if (!increaseValueInput || increaseValueInput.trim() === '') {
-      errors.push({ field: 'increaseValue', message: 'Increase value is required', type: 'error' });
-    } else if (isNaN(increaseValue) || increaseValue < 0) {
-      errors.push({ field: 'increaseValue', message: 'Increase value must be a valid positive number', type: 'error' });
-    } else if (increaseType === 'percent' && increaseValue > 20) {
-      warnings.push({ field: 'increaseValue', message: 'Annual increase above 20% is unusually high', type: 'warning' });
-      completedFields++;
-    } else {
+    if (touchedFields.has('increaseValue')) {
+      if (!increaseValueInput || increaseValueInput.trim() === '') {
+        errors.push({ field: 'increaseValue', message: 'Increase value is required', type: 'error' });
+      } else if (isNaN(increaseValue) || increaseValue < 0) {
+        errors.push({ field: 'increaseValue', message: 'Increase value must be a valid positive number', type: 'error' });
+      } else if (increaseType === 'percent' && increaseValue > 20) {
+        warnings.push({ field: 'increaseValue', message: 'Annual increase above 20% is unusually high', type: 'warning' });
+        completedFields++;
+      } else {
+        completedFields++;
+      }
+    } else if (increaseValueInput && increaseValueInput.trim() !== '' && !isNaN(increaseValue) && increaseValue >= 0) {
       completedFields++;
     }
 
     // Time Period Validation
     const timePeriod = Number(timePeriodInput);
-    if (!timePeriodInput || timePeriodInput.trim() === '') {
-      errors.push({ field: 'timePeriod', message: 'Time period is required', type: 'error' });
-    } else if (isNaN(timePeriod) || timePeriod <= 0) {
-      errors.push({ field: 'timePeriod', message: 'Time period must be greater than 0', type: 'error' });
-    } else if (timePeriod > 50) {
-      warnings.push({ field: 'timePeriod', message: 'Time period above 50 years is unusually long', type: 'warning' });
-      completedFields++;
-    } else {
+    if (touchedFields.has('timePeriod')) {
+      if (!timePeriodInput || timePeriodInput.trim() === '') {
+        errors.push({ field: 'timePeriod', message: 'Time period is required', type: 'error' });
+      } else if (isNaN(timePeriod) || timePeriod <= 0) {
+        errors.push({ field: 'timePeriod', message: 'Time period must be greater than 0', type: 'error' });
+      } else if (timePeriod > 50) {
+        warnings.push({ field: 'timePeriod', message: 'Time period above 50 years is unusually long', type: 'warning' });
+        completedFields++;
+      } else {
+        completedFields++;
+      }
+    } else if (timePeriodInput && timePeriodInput.trim() !== '' && !isNaN(timePeriod) && timePeriod > 0) {
       completedFields++;
     }
 
     // Total Hectares Validation
     const totalHectares = Number(totalHectaresInput);
-    if (!totalHectaresInput || totalHectaresInput.trim() === '') {
-      errors.push({ field: 'totalHectares', message: 'Total hectares is required', type: 'error' });
-    } else if (isNaN(totalHectares) || totalHectares <= 0) {
-      errors.push({ field: 'totalHectares', message: 'Total hectares must be greater than 0', type: 'error' });
-    } else {
+    if (touchedFields.has('totalHectares')) {
+      if (!totalHectaresInput || totalHectaresInput.trim() === '') {
+        errors.push({ field: 'totalHectares', message: 'Total hectares is required', type: 'error' });
+      } else if (isNaN(totalHectares) || totalHectares <= 0) {
+        errors.push({ field: 'totalHectares', message: 'Total hectares must be greater than 0', type: 'error' });
+      } else {
+        completedFields++;
+      }
+    } else if (totalHectaresInput && totalHectaresInput.trim() !== '' && !isNaN(totalHectares) && totalHectares > 0) {
       completedFields++;
     }
 
@@ -175,7 +197,8 @@ export const useFormValidation = ({
     paymentType,
     paymentSchedule,
     cashFlows,
-    leaseValue
+    leaseValue,
+    touchedFields
   ]);
 
   return validation;

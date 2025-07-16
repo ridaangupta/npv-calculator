@@ -8,11 +8,13 @@ import { AlertCircle } from 'lucide-react';
 interface HectaresInputProps {
   totalHectares: string;
   onTotalHectaresChange: (value: string) => void;
+  onBlur?: () => void;
 }
 
 const HectaresInput: React.FC<HectaresInputProps> = ({
   totalHectares,
-  onTotalHectaresChange
+  onTotalHectaresChange,
+  onBlur
 }) => {
   const { selectedCurrency } = useCurrency();
 
@@ -45,6 +47,7 @@ const HectaresInput: React.FC<HectaresInputProps> = ({
           type="number"
           value={totalHectares}
           onChange={handleChange}
+          onBlur={onBlur}
           placeholder="Enter total hectares (e.g., 100)"
           min="0.1"
           step="0.1"
