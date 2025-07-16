@@ -36,17 +36,17 @@ const MobileLeaseCalculator: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Tabs defaultValue="configuration" className="w-full">
+      <Tabs defaultValue="input" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="configuration" className="text-sm font-medium">
-            Configuration
+          <TabsTrigger value="input" className="text-sm font-medium">
+            Input
           </TabsTrigger>
-          <TabsTrigger value="analysis" className="text-sm font-medium">
-            Analysis
+          <TabsTrigger value="results" className="text-sm font-medium">
+            Results
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="configuration" className="space-y-6">
+        <TabsContent value="input" className="space-y-6">
           <InputSection
             discountRateInput={discountRateInput}
             baseCashFlowInput={baseCashFlowInput}
@@ -74,7 +74,7 @@ const MobileLeaseCalculator: React.FC = () => {
           />
         </TabsContent>
         
-        <TabsContent value="analysis" className="space-y-6">
+        <TabsContent value="results" className="space-y-6">
           <ResultsDisplay
             leaseValue={leaseValue}
             totalHectares={numericValues.totalHectares}
