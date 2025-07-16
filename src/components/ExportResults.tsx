@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, Copy, Mail, MessageSquare, Download } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useToast } from '@/hooks/use-toast';
+import html2pdf from 'html2pdf.js';
 
 interface ExportResultsProps {
   npv: number;
@@ -78,71 +79,68 @@ The calculated upfront lease value represents the net present value of all futur
     window.open(mailtoUrl, '_blank');
   };
 
-  const handleGeneratePDF = () => {
-    // Create a simple HTML document for PDF generation
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Upfront Lease Valuation Results</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-          .header { text-align: center; color: #2563eb; margin-bottom: 30px; }
-          .section { margin: 20px 0; padding: 15px; border-left: 4px solid #2563eb; }
-          .value { font-weight: bold; color: #059669; }
-          .label { color: #4b5563; margin-right: 10px; }
-          .footer { margin-top: 30px; text-align: center; color: #6b7280; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Upfront Lease Valuation Analysis</h1>
-          <p>Executive Investment Summary</p>
+  const handleGeneratePDF = async () => {
+    try {
+      const npvPerSquareMeter = npv / 10000;
+      const totalInvestment = npv * totalHectares;
+      
+      // Create a temporary div with the content
+      const element = document.createElement('div');
+      element.innerHTML = `
+        <div style="font-family: Arial, sans-serif; padding: 40px; line-height: 1.6;">
+          <div style="text-align: center; color: #2563eb; margin-bottom: 30px;">
+            <h1 style="margin: 0; font-size: 24px;">Upfront Lease Valuation Analysis</h1>
+            <p style="margin: 10px 0; font-size: 16px;">Executive Investment Summary</p>
+          </div>
+          
+          <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #2563eb;">
+            <h2 style="color: #1f2937; margin: 0 0 10px 0;">Executive Summary</h2>
+            <p style="margin: 0;">This analysis presents the present value of projected lease payments for informed investment decision-making.</p>
+          </div>
+          
+          <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #2563eb;">
+            <h2 style="color: #1f2937; margin: 0 0 10px 0;">Key Financial Metrics</h2>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Deal Value per Square Meter:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(Math.max(0, npvPerSquareMeter))}</span></p>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Deal Value per Hectare:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(Math.max(0, npv))}</span></p>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Total Investment Required:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(Math.max(0, totalInvestment))}</span></p>
+          </div>
+          
+          <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #2563eb;">
+            <h2 style="color: #1f2937; margin: 0 0 10px 0;">Lease Structure</h2>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Property Size:</span><span style="font-weight: bold; color: #059669;">${totalHectares} hectare(s)</span></p>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Initial Annual Payment:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(baseCashFlow)} per square meter</span></p>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Annual Escalation:</span><span style="font-weight: bold; color: #059669;">${increaseType === 'percent' ? `${increaseValue}% annually` : `${formatCurrency(increaseValue)} per square meter annually`}</span></p>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Payment Schedule:</span><span style="font-weight: bold; color: #059669;">${paymentTiming.charAt(0).toUpperCase() + paymentTiming.slice(1)} of year</span></p>
+          </div>
+          
+          <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #2563eb;">
+            <h2 style="color: #1f2937; margin: 0 0 10px 0;">Investment Overview</h2>
+            <p style="margin: 0;">The calculated upfront lease value represents the net present value of all future lease payments, providing a comprehensive assessment of the investment opportunity based on current market conditions and projected cash flows.</p>
+          </div>
         </div>
-        
-        <div class="section">
-          <h2>Executive Summary</h2>
-          <p>This analysis presents the present value of projected lease payments for informed investment decision-making.</p>
-        </div>
-        
-        <div class="section">
-          <h2>Key Financial Metrics</h2>
-          <p><span class="label">Deal Value per Square Meter:</span><span class="value">${formatCurrency(Math.max(0, npv / 10000))}</span></p>
-          <p><span class="label">Deal Value per Hectare:</span><span class="value">${formatCurrency(Math.max(0, npv))}</span></p>
-          <p><span class="label">Total Investment Required:</span><span class="value">${formatCurrency(Math.max(0, npv * totalHectares))}</span></p>
-        </div>
-        
-        <div class="section">
-          <h2>Lease Structure</h2>
-          <p><span class="label">Property Size:</span><span class="value">${totalHectares} hectare(s)</span></p>
-          <p><span class="label">Initial Annual Payment:</span><span class="value">${formatCurrency(baseCashFlow)} per square meter</span></p>
-          <p><span class="label">Annual Escalation:</span><span class="value">${increaseType === 'percent' ? `${increaseValue}% annually` : `${formatCurrency(increaseValue)} per square meter annually`}</span></p>
-          <p><span class="label">Payment Schedule:</span><span class="value">${paymentTiming.charAt(0).toUpperCase() + paymentTiming.slice(1)} of year</span></p>
-        </div>
-        
-        <div class="section">
-          <h2>Investment Overview</h2>
-          <p>The calculated upfront lease value represents the net present value of all future lease payments, providing a comprehensive assessment of the investment opportunity based on current market conditions and projected cash flows.</p>
-        </div>
-        
-      </body>
-      </html>
-    `;
+      `;
 
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lease-valuation-${new Date().toISOString().split('T')[0]}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "PDF Report Generated",
-      description: "Your lease valuation report has been downloaded",
-    });
+      const opt = {
+        margin: 1,
+        filename: `lease-valuation-${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      
+      toast({
+        title: "PDF Report Generated",
+        description: "Your lease valuation report has been downloaded",
+      });
+    } catch (error) {
+      toast({
+        title: "PDF Generation Failed",
+        description: "Unable to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
