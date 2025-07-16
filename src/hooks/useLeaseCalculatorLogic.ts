@@ -9,7 +9,7 @@ interface CashFlow {
   amount: number;
 }
 
-export const useNPVCalculatorLogic = () => {
+export const useLeaseCalculatorLogic = () => {
   const { calculateNPVMemoized, generateCashFlowsMemoized } = useOptimizedCalculations();
   
   // Use string values for input fields to maintain focus
@@ -23,7 +23,7 @@ export const useNPVCalculatorLogic = () => {
   const [paymentTiming, setPaymentTiming] = useState<'beginning' | 'middle' | 'end'>('end');
   const [paymentType, setPaymentType] = useState<'normal' | 'custom'>('normal');
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
-  const [npv, setNpv] = useState<number>(0);
+  const [leaseValue, setLeaseValue] = useState<number>(0);
   const [paymentSchedule, setPaymentSchedule] = useState<PaymentSchedule>({
     installments: [],
     totalPercentage: 0,
@@ -98,7 +98,7 @@ export const useNPVCalculatorLogic = () => {
       // Early return for invalid inputs
       if (baseCashFlow < 0 || increaseValue < 0 || timePeriod <= 0) {
         setCashFlows([]);
-        setNpv(0);
+        setLeaseValue(0);
         return;
       }
 
@@ -127,12 +127,12 @@ export const useNPVCalculatorLogic = () => {
       
       setCashFlows(generatedFlows);
 
-      // Calculate NPV immediately after generating flows
+      // Calculate lease value immediately after generating flows
       if (generatedFlows.length > 0 && discountRate >= 0) {
-        const npvValue = calculateNPVMemoized(generatedFlows, discountRate, paymentTiming);
-        setNpv(npvValue);
+        const leaseVal = calculateNPVMemoized(generatedFlows, discountRate, paymentTiming);
+        setLeaseValue(leaseVal);
       } else {
-        setNpv(0);
+        setLeaseValue(0);
       }
     }, 100); // Reduced debounce further to 100ms
 
@@ -151,7 +151,7 @@ export const useNPVCalculatorLogic = () => {
     paymentTiming,
     paymentType,
     cashFlows,
-    npv,
+    leaseValue,
     paymentSchedule,
     numericValues,
     

@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import html2pdf from 'html2pdf.js';
 
 interface ExportResultsProps {
-  npv: number;
+  leaseValue: number;
   totalHectares: number;
   baseCashFlow: number;
   increaseValue: number;
@@ -16,7 +16,7 @@ interface ExportResultsProps {
 }
 
 const ExportResults: React.FC<ExportResultsProps> = ({
-  npv,
+  leaseValue,
   totalHectares,
   baseCashFlow,
   increaseValue,
@@ -27,8 +27,8 @@ const ExportResults: React.FC<ExportResultsProps> = ({
   const { toast } = useToast();
 
   const formatExportText = () => {
-    const npvPerSquareMeter = npv / 10000;
-    const totalInvestment = npv * totalHectares;
+    const valuePerSquareMeter = leaseValue / 10000;
+    const totalInvestment = leaseValue * totalHectares;
     
     return `UPFRONT LEASE VALUATION ANALYSIS
 
@@ -36,8 +36,8 @@ EXECUTIVE SUMMARY
 This analysis presents the present value of projected lease payments for informed investment decision-making.
 
 KEY FINANCIAL METRICS
-Deal Value per Square Meter: ${formatCurrency(Math.max(0, npvPerSquareMeter))}
-Deal Value per Hectare: ${formatCurrency(Math.max(0, npv))}
+Deal Value per Square Meter: ${formatCurrency(Math.max(0, valuePerSquareMeter))}
+Deal Value per Hectare: ${formatCurrency(Math.max(0, leaseValue))}
 Total Investment Required: ${formatCurrency(Math.max(0, totalInvestment))}
 
 LEASE STRUCTURE
@@ -81,8 +81,8 @@ The calculated upfront lease value represents the net present value of all futur
 
   const handleGeneratePDF = async () => {
     try {
-      const npvPerSquareMeter = npv / 10000;
-      const totalInvestment = npv * totalHectares;
+      const valuePerSquareMeter = leaseValue / 10000;
+      const totalInvestment = leaseValue * totalHectares;
       
       // Create a temporary div with the content
       const element = document.createElement('div');
@@ -100,8 +100,8 @@ The calculated upfront lease value represents the net present value of all futur
           
           <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #2563eb;">
             <h2 style="color: #1f2937; margin: 0 0 10px 0;">Key Financial Metrics</h2>
-            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Deal Value per Square Meter:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(Math.max(0, npvPerSquareMeter))}</span></p>
-            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Deal Value per Hectare:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(Math.max(0, npv))}</span></p>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Deal Value per Square Meter:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(Math.max(0, valuePerSquareMeter))}</span></p>
+            <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Deal Value per Hectare:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(Math.max(0, leaseValue))}</span></p>
             <p style="margin: 5px 0;"><span style="color: #4b5563; margin-right: 10px;">Total Investment Required:</span><span style="font-weight: bold; color: #059669;">${formatCurrency(Math.max(0, totalInvestment))}</span></p>
           </div>
           

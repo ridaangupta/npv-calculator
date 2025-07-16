@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { LeaseSchedule, ValidationError, ValidationResult } from '@/types/LeaseTypes';
 
-interface UseFormValidationProps {
+interface UseLeaseValidationProps {
   discountRateInput: string;
   baseCashFlowInput: string;
   increaseValueInput: string;
@@ -9,12 +9,12 @@ interface UseFormValidationProps {
   timePeriodInput: string;
   totalHectaresInput: string;
   paymentType: 'normal' | 'custom';
-  paymentSchedule: LeaseSchedule;
+  leaseSchedule: LeaseSchedule;
   cashFlows: any[];
   leaseValue: number;
 }
 
-export const useFormValidation = ({
+export const useLeaseValidation = ({
   discountRateInput,
   baseCashFlowInput,
   increaseValueInput,
@@ -22,10 +22,10 @@ export const useFormValidation = ({
   timePeriodInput,
   totalHectaresInput,
   paymentType,
-  paymentSchedule,
+  leaseSchedule,
   cashFlows,
   leaseValue
-}: UseFormValidationProps): ValidationResult => {
+}: UseLeaseValidationProps): ValidationResult => {
   
   const validation = useMemo(() => {
     const errors: ValidationError[] = [];
@@ -102,16 +102,16 @@ export const useFormValidation = ({
     // Custom Payment Schedule Validation
     if (paymentType === 'custom') {
       // Payment Schedule Validation
-      if (paymentSchedule.installments.length === 0) {
-        errors.push({ field: 'paymentSchedule', message: 'At least one payment installment is required', type: 'error' });
+      if (leaseSchedule.installments.length === 0) {
+        errors.push({ field: 'leaseSchedule', message: 'At least one payment installment is required', type: 'error' });
       } else {
-        const incompleteInstallments = paymentSchedule.installments.filter(inst => 
+        const incompleteInstallments = leaseSchedule.installments.filter(inst => 
           inst.amountDue <= 0 || inst.percentageOfDeal <= 0 || !inst.paymentDate
         );
         
         if (incompleteInstallments.length > 0) {
           errors.push({ 
-            field: 'paymentSchedule', 
+            field: 'leaseSchedule', 
             message: `${incompleteInstallments.length} installment(s) have incomplete data`, 
             type: 'error' 
           });
@@ -120,16 +120,16 @@ export const useFormValidation = ({
         }
 
         // Check percentage allocation
-        const totalPercentage = paymentSchedule.installments.reduce((sum, inst) => sum + inst.percentageOfDeal, 0);
+        const totalPercentage = leaseSchedule.installments.reduce((sum, inst) => sum + inst.percentageOfDeal, 0);
         if (totalPercentage < 95) {
           warnings.push({ 
-            field: 'paymentSchedule', 
+            field: 'leaseSchedule', 
             message: `Payment schedule is incomplete (${totalPercentage.toFixed(1)}% allocated)`, 
             type: 'warning' 
           });
         } else if (totalPercentage > 100.1) {
           errors.push({ 
-            field: 'paymentSchedule', 
+            field: 'leaseSchedule', 
             message: 'Total percentage exceeds 100%', 
             type: 'error' 
           });
@@ -138,12 +138,12 @@ export const useFormValidation = ({
         }
 
         // Check for invalid payment dates
-        const invalidDates = paymentSchedule.installments.filter(inst => 
-          inst.paymentDate < paymentSchedule.leaseStartDate
+        const invalidDates = leaseSchedule.installments.filter(inst => 
+          inst.paymentDate < leaseSchedule.leaseStartDate
         );
         if (invalidDates.length > 0) {
           errors.push({ 
-            field: 'paymentSchedule', 
+            field: 'leaseSchedule', 
             message: `${invalidDates.length} payment(s) scheduled before lease start date`, 
             type: 'error' 
           });
@@ -173,7 +173,7 @@ export const useFormValidation = ({
     timePeriodInput,
     totalHectaresInput,
     paymentType,
-    paymentSchedule,
+    leaseSchedule,
     cashFlows,
     leaseValue
   ]);
@@ -181,4 +181,4 @@ export const useFormValidation = ({
   return validation;
 };
 
-export default useFormValidation;
+export default useLeaseValidation;

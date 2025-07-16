@@ -37,7 +37,7 @@ interface InputSectionProps {
   paymentTiming: 'beginning' | 'middle' | 'end';
   paymentType: 'normal' | 'custom';
   cashFlows: CashFlow[];
-  npv: number;
+  leaseValue: number;
   paymentSchedule: PaymentSchedule;
   discountRate: number;
   onDiscountRateChange: (value: string) => void;
@@ -63,7 +63,7 @@ const InputSection: React.FC<InputSectionProps> = ({
   paymentTiming,
   paymentType,
   cashFlows,
-  npv,
+  leaseValue,
   paymentSchedule,
   discountRate,
   onDiscountRateChange,
@@ -77,7 +77,7 @@ const InputSection: React.FC<InputSectionProps> = ({
   onPaymentTypeChange,
   onPaymentScheduleChange
 }) => {
-  const totalNPV = npv * Number(totalHectaresInput || 1);
+  const totalValue = leaseValue * Number(totalHectaresInput || 1);
 
   // Comprehensive validation
   const validation = useFormValidation({
@@ -90,7 +90,7 @@ const InputSection: React.FC<InputSectionProps> = ({
     paymentType,
     paymentSchedule,
     cashFlows,
-    npv
+    leaseValue
   });
 
   const getCurrentStep = () => {
@@ -164,7 +164,7 @@ const InputSection: React.FC<InputSectionProps> = ({
 
           {paymentType === 'custom' && (
             <UpfrontPaymentScheduler
-              totalNPV={totalNPV}
+              totalValue={totalValue}
               paymentSchedule={paymentSchedule}
               onUpdateSchedule={onPaymentScheduleChange}
               discountRate={discountRate}
@@ -204,7 +204,7 @@ const arePropsEqual = (prevProps: InputSectionProps, nextProps: InputSectionProp
     prevProps.totalHectaresInput === nextProps.totalHectaresInput &&
     prevProps.paymentTiming === nextProps.paymentTiming &&
     prevProps.paymentType === nextProps.paymentType &&
-    prevProps.npv === nextProps.npv &&
+    prevProps.leaseValue === nextProps.leaseValue &&
     prevProps.discountRate === nextProps.discountRate &&
     prevProps.cashFlows.length === nextProps.cashFlows.length &&
     prevProps.cashFlows.every((flow, index) => 

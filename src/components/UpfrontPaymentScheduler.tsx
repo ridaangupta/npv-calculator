@@ -19,14 +19,14 @@ import {
 } from '@/utils/timeValueCalculations';
 
 interface UpfrontPaymentSchedulerProps {
-  totalNPV: number;
+  totalValue: number;
   paymentSchedule: PaymentSchedule;
   onUpdateSchedule: (schedule: PaymentSchedule) => void;
   discountRate: number;
 }
 
 const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
-  totalNPV,
+  totalValue,
   paymentSchedule,
   onUpdateSchedule,
   discountRate
@@ -41,15 +41,15 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     const totalPercentage = paymentSchedule.installments.reduce((sum, inst) => sum + inst.percentageOfDeal, 0);
     
     // Remaining amount is based on present value (NPV)
-    const remainingPresentValue = Math.max(0, totalNPV - totalPresentValue);
+    const remainingPresentValue = Math.max(0, totalValue - totalPresentValue);
     
     // Enhanced validation with detailed error tracking
     const validationErrors = [];
     let isValid = true;
     
-    // Check if total NPV is valid
-    if (totalNPV <= 0) {
-      validationErrors.push('Invalid total NPV value');
+    // Check if total value is valid
+    if (totalValue <= 0) {
+      validationErrors.push('Invalid total lease value');
       isValid = false;
     }
     
@@ -68,8 +68,8 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
       isValid = false;
     }
     
-    // Check if present value exceeds NPV
-    if (totalNPV > 0 && totalPresentValue > totalNPV * 1.01) { // Allow 1% tolerance for rounding
+    // Check if present value exceeds total value
+    if (totalValue > 0 && totalPresentValue > totalValue * 1.01) { // Allow 1% tolerance for rounding
       validationErrors.push('Total present value exceeds available deal value');
       isValid = false;
     }
@@ -81,7 +81,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     }
     
     // Check if schedule is incomplete (not close to 100%)
-    const percentageAllocated = totalNPV > 0 ? (totalPresentValue / totalNPV) * 100 : 0;
+    const percentageAllocated = totalValue > 0 ? (totalPresentValue / totalValue) * 100 : 0;
     const isIncomplete = percentageAllocated < 95; // Less than 95% allocated
     if (isIncomplete && paymentSchedule.installments.length > 0) {
       validationErrors.push(`Payment schedule incomplete (${percentageAllocated.toFixed(1)}% allocated)`);
@@ -99,7 +99,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     
     // Debug logging with enhanced info
     console.log('Payment Schedule Validation:', {
-      totalNPV,
+      totalValue,
       totalPresentValue,
       totalAmount,
       totalPercentage,
@@ -121,14 +121,14 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
       validationErrors,
       percentageAllocated
     };
-  }, [paymentSchedule.installments, totalNPV, paymentSchedule.leaseStartDate]);
+  }, [paymentSchedule.installments, totalValue, paymentSchedule.leaseStartDate]);
 
   const updateSchedule = (installments: PaymentInstallment[]) => {
     // Recalculate values for the new schedule to avoid circular dependency
     const newTotalPresentValue = installments.reduce((sum, inst) => sum + inst.presentValue, 0);
     const newTotalAmount = installments.reduce((sum, inst) => sum + inst.amountDue, 0);
     const newTotalPercentage = installments.reduce((sum, inst) => sum + inst.percentageOfDeal, 0);
-    const newRemainingAmount = Math.max(0, totalNPV - newTotalPresentValue);
+    const newRemainingAmount = Math.max(0, totalValue - newTotalPresentValue);
     
     const newSchedule: PaymentSchedule = {
       installments,
@@ -166,7 +166,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
         // Calculate present value of the entered amount
         const presentValue = calculatePresentValue(amount, discountRate, paymentSchedule.leaseStartDate, inst.paymentDate);
         // Calculate percentage based on present value portion of total NPV
-        const percentage = calculatePercentageFromPresentValue(presentValue, totalNPV);
+        const percentage = calculatePercentageFromPresentValue(presentValue, totalValue);
         return { ...inst, amountDue: amount, presentValue, percentageOfDeal: percentage };
       }
       return inst;
@@ -179,7 +179,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     const updatedInstallments = paymentSchedule.installments.map(inst => {
       if (inst.id === id) {
         // Calculate present value portion based on percentage of total NPV
-        const presentValuePortion = calculatePresentValuePortion(percentage, totalNPV);
+        const presentValuePortion = calculatePresentValuePortion(percentage, totalValue);
         // Convert this present value portion to future value at the payment date
         const futureValue = calculateFutureValue(presentValuePortion, discountRate, paymentSchedule.leaseStartDate, inst.paymentDate);
         
@@ -199,7 +199,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
         // Recalculate present value with new date
         const presentValue = calculatePresentValue(inst.amountDue, discountRate, paymentSchedule.leaseStartDate, date);
         // Recalculate percentage based on new present value
-        const percentage = calculatePercentageFromPresentValue(presentValue, totalNPV);
+        const percentage = calculatePercentageFromPresentValue(presentValue, totalValue);
         return { ...inst, paymentDate: date, presentValue, percentageOfDeal: percentage };
       }
       return inst;
@@ -214,7 +214,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
     // Recalculate all installments with new start date using Present Value Equivalence
     const updatedInstallments = paymentSchedule.installments.map(inst => {
       const presentValue = calculatePresentValue(inst.amountDue, discountRate, newStartDate, inst.paymentDate);
-      const percentage = calculatePercentageFromPresentValue(presentValue, totalNPV);
+      const percentage = calculatePercentageFromPresentValue(presentValue, totalValue);
       return { ...inst, presentValue, percentageOfDeal: percentage };
     });
     
@@ -250,7 +250,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
           </div>
 
           <PaymentScheduleSummary
-            totalNPV={totalNPV}
+            totalValue={totalValue}
             paymentSchedule={paymentSchedule}
             totalAmount={calculatedValues.totalAmount}
             totalPercentage={calculatedValues.totalPercentage}
@@ -270,7 +270,7 @@ const UpfrontPaymentScheduler: React.FC<UpfrontPaymentSchedulerProps> = ({
                 <>
                   <PaymentScheduleList
                     installments={paymentSchedule.installments}
-                    totalNPV={totalNPV}
+                    totalValue={totalValue}
                     onUpdateAmount={updateInstallmentAmount}
                     onUpdatePercentage={updateInstallmentPercentage}
                     onUpdateDate={updateInstallmentDate}

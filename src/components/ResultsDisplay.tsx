@@ -15,7 +15,7 @@ interface CashFlow {
 }
 
 interface ResultsDisplayProps {
-  npv: number;
+  leaseValue: number;
   totalHectares: number;
   discountRate: number;
   cashFlows: CashFlow[];
@@ -29,7 +29,7 @@ interface ResultsDisplayProps {
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
-  npv,
+  leaseValue,
   totalHectares,
   cashFlows,
   baseCashFlow,
@@ -85,16 +85,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     );
   }
 
-  // Show warning if NPV is zero or negative
-  const showNpvWarning = npv <= 0;
+  // Show warning if lease value is zero or negative
+  const showValueWarning = leaseValue <= 0;
 
   // Calculate per square meter (1 hectare = 10,000 square meters)
-  const npvPerSquareMeter = npv / 10000;
+  const valuePerSquareMeter = leaseValue / 10000;
 
   return (
     <div className="space-y-6">
-      {/* NPV Warning Alert */}
-      {showNpvWarning && (
+      {/* Value Warning Alert */}
+      {showValueWarning && (
         <ValidationAlert
           type="warning"
           title="Low or Negative Deal Value"
@@ -129,7 +129,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-sm font-medium">Deal Value per Square Meter</p>
-                <p className="text-3xl font-bold">{formatCurrency(Math.max(0, npvPerSquareMeter))}</p>
+                <p className="text-3xl font-bold">{formatCurrency(Math.max(0, valuePerSquareMeter))}</p>
                 <p className="text-green-200 text-xs mt-1">Upfront payment per m²</p>
               </div>
               <Calculator className="w-8 h-8 text-green-200" />
@@ -142,7 +142,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-medium">Deal Value per Hectare</p>
-                <p className="text-3xl font-bold">{formatCurrency(Math.max(0, npv))}</p>
+                <p className="text-3xl font-bold">{formatCurrency(Math.max(0, leaseValue))}</p>
                 <p className="text-blue-200 text-xs mt-1">Present value of lease payments</p>
               </div>
               <TrendingUp className="w-8 h-8 text-blue-200" />
@@ -155,7 +155,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Total Investment Required</p>
-                <p className="text-3xl font-bold">{formatCurrency(Math.max(0, npv * totalHectares))}</p>
+                <p className="text-3xl font-bold">{formatCurrency(Math.max(0, leaseValue * totalHectares))}</p>
                 <p className="text-purple-200 text-xs mt-1">Complete upfront amount ({totalHectares} hectares)</p>
               </div>
               <DollarSign className="w-8 h-8 text-purple-200" />
@@ -203,7 +203,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
       {/* Export Results */}
       <ExportResults
-        npv={npv}
+        leaseValue={leaseValue}
         totalHectares={totalHectares}
         baseCashFlow={baseCashFlow}
         increaseValue={increaseValue}

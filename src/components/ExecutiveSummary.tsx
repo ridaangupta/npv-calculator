@@ -5,7 +5,7 @@ import { TrendingUp, DollarSign, Target, Clock, CheckCircle } from 'lucide-react
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface ExecutiveSummaryProps {
-  npv: number;
+  leaseValue: number;
   totalHectares: number;
   totalInvestment: number;
   paymentScheduleComplete: boolean;
@@ -14,7 +14,7 @@ interface ExecutiveSummaryProps {
 }
 
 const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
-  npv,
+  leaseValue,
   totalHectares,
   totalInvestment,
   paymentScheduleComplete,
@@ -38,7 +38,7 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   const summaryCards = [
     {
       title: 'Investment Value',
-      value: formatCurrency(Math.max(0, npv)),
+      value: formatCurrency(Math.max(0, leaseValue)),
       subtitle: 'Per hectare lease value',
       icon: DollarSign,
       color: 'from-green-500 to-emerald-600',
@@ -122,7 +122,7 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="text-center">
-                <div className="font-semibold text-gray-800">{formatCurrency(Math.max(0, npv))}</div>
+                <div className="font-semibold text-gray-800">{formatCurrency(Math.max(0, leaseValue))}</div>
                 <div className="text-gray-600">Value per Hectare</div>
               </div>
               <div className="text-center">

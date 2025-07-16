@@ -1,13 +1,11 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
 import ExecutiveSummary from './ExecutiveSummary';
-import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
-import { useNPVCalculatorLogic } from '@/hooks/useNPVCalculatorLogic';
+import { useLeaseCalculatorLogic } from '@/hooks/useLeaseCalculatorLogic';
 
-const MobileNPVCalculator: React.FC = () => {
+const DesktopLeaseCalculator: React.FC = () => {
   const {
     discountRateInput,
     baseCashFlowInput,
@@ -19,7 +17,7 @@ const MobileNPVCalculator: React.FC = () => {
     paymentTiming,
     paymentType,
     cashFlows,
-    npv,
+    leaseValue,
     paymentSchedule,
     numericValues,
     handleDiscountRateChange,
@@ -32,21 +30,23 @@ const MobileNPVCalculator: React.FC = () => {
     handlePaymentTimingChange,
     handlePaymentTypeChange,
     handlePaymentScheduleChange
-  } = useNPVCalculatorLogic();
+  } = useLeaseCalculatorLogic();
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <Tabs defaultValue="configuration" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="configuration" className="text-sm font-medium">
-            Configuration
-          </TabsTrigger>
-          <TabsTrigger value="analysis" className="text-sm font-medium">
-            Analysis
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="configuration" className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-8">
+      {/* Executive Summary */}
+      <ExecutiveSummary
+        leaseValue={leaseValue}
+        totalHectares={numericValues.totalHectares}
+        totalInvestment={leaseValue * numericValues.totalHectares}
+        paymentScheduleComplete={paymentSchedule.totalPercentage >= 95}
+        percentageAllocated={paymentSchedule.totalPercentage}
+        paymentCount={paymentSchedule.installments.length}
+      />
+      
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Input Section */}
+        <div className="space-y-6">
           <InputSection
             discountRateInput={discountRateInput}
             baseCashFlowInput={baseCashFlowInput}
@@ -58,7 +58,7 @@ const MobileNPVCalculator: React.FC = () => {
             paymentTiming={paymentTiming}
             paymentType={paymentType}
             cashFlows={cashFlows}
-            npv={npv}
+            leaseValue={leaseValue}
             paymentSchedule={paymentSchedule}
             discountRate={numericValues.discountRate}
             onDiscountRateChange={handleDiscountRateChange}
@@ -72,26 +72,25 @@ const MobileNPVCalculator: React.FC = () => {
             onPaymentTypeChange={handlePaymentTypeChange}
             onPaymentScheduleChange={handlePaymentScheduleChange}
           />
-        </TabsContent>
-        
-        <TabsContent value="analysis" className="space-y-6">
-          <ResultsDisplay
-            npv={npv}
-            totalHectares={numericValues.totalHectares}
-            discountRate={numericValues.discountRate}
-            cashFlows={cashFlows}
-            baseCashFlow={numericValues.baseCashFlow}
-            increaseValue={numericValues.increaseValue}
-            increaseType={increaseType}
-            increaseFrequency={increaseFrequency}
-            paymentTiming={paymentTiming}
-            paymentSchedule={paymentSchedule}
-            onPaymentScheduleChange={handlePaymentScheduleChange}
-          />
-        </TabsContent>
-      </Tabs>
+        </div>
+
+        {/* Results Section */}
+        <ResultsDisplay
+          leaseValue={leaseValue}
+          totalHectares={numericValues.totalHectares}
+          discountRate={numericValues.discountRate}
+          cashFlows={cashFlows}
+          baseCashFlow={numericValues.baseCashFlow}
+          increaseValue={numericValues.increaseValue}
+          increaseType={increaseType}
+          increaseFrequency={increaseFrequency}
+          paymentTiming={paymentTiming}
+          paymentSchedule={paymentSchedule}
+          onPaymentScheduleChange={handlePaymentScheduleChange}
+        />
+      </div>
     </div>
   );
 };
 
-export default MobileNPVCalculator;
+export default DesktopLeaseCalculator;

@@ -1,16 +1,16 @@
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import MobileNPVCalculator from './MobileNPVCalculator';
-import DesktopNPVCalculator from './DesktopNPVCalculator';
+import MobileLeaseCalculator from './MobileLeaseCalculator';
+import DesktopLeaseCalculator from './DesktopLeaseCalculator';
 
 const UpfrontLeaseCalculator = () => {
   const isMobile = useIsMobile();
 
   if (isMobile) {
-    return <MobileNPVCalculator />;
+    return <MobileLeaseCalculator />;
   }
 
-  return <DesktopNPVCalculator />;
+  return <DesktopLeaseCalculator />;
 };
 
 export default UpfrontLeaseCalculator;
