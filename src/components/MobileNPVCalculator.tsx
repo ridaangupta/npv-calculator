@@ -36,11 +36,8 @@ const MobileNPVCalculator: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="overview" className="text-sm font-medium">
-            Overview
-          </TabsTrigger>
+      <Tabs defaultValue="configuration" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="configuration" className="text-sm font-medium">
             Configuration
           </TabsTrigger>
@@ -48,17 +45,6 @@ const MobileNPVCalculator: React.FC = () => {
             Analysis
           </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="overview" className="space-y-6">
-          <ExecutiveSummary
-            npv={npv}
-            totalHectares={numericValues.totalHectares}
-            totalInvestment={npv * numericValues.totalHectares}
-            paymentScheduleComplete={paymentSchedule.totalPercentage >= 95}
-            percentageAllocated={paymentSchedule.totalPercentage}
-            paymentCount={paymentSchedule.installments.length}
-          />
-        </TabsContent>
         
         <TabsContent value="configuration" className="space-y-6">
           <InputSection
