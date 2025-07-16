@@ -56,20 +56,6 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-4">
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Overall Progress</span>
-              <span className={`font-medium ${getStatusColor(completionPercentage)}`}>
-                {completionPercentage}%
-              </span>
-            </div>
-            <Progress 
-              value={completionPercentage} 
-              className="h-2"
-            />
-          </div>
-
           {/* Status Summary */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="text-center">
