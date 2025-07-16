@@ -108,14 +108,12 @@ const InputSection: React.FC<InputSectionProps> = ({
             onBlur={() => handleFieldBlur('discountRate')}
           />
 
-          <CurrencyInput
-            value={baseCashFlowInput}
-            onChange={onBaseCashFlowChange}
-            onBlur={() => handleFieldBlur('baseCashFlow')}
-          />
+          <CurrencyInput />
 
           <CashFlowConfiguration
+            baseCashFlow={baseCashFlowInput}
             increaseValue={increaseValueInput}
+            onBaseCashFlowChange={onBaseCashFlowChange}
             onIncreaseValueChange={onIncreaseValueChange}
             increaseType={increaseType}
             onIncreaseTypeChange={onIncreaseTypeChange}
@@ -125,8 +123,6 @@ const InputSection: React.FC<InputSectionProps> = ({
             onTimePeriodChange={onTimePeriodChange}
             paymentTiming={paymentTiming}
             onPaymentTimingChange={onPaymentTimingChange}
-            onIncreaseValueBlur={() => handleFieldBlur('increaseValue')}
-            onTimePeriodBlur={() => handleFieldBlur('timePeriod')}
           />
 
           <CashFlowPreview
