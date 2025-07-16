@@ -38,45 +38,45 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
         <div className="mb-4 p-3 bg-blue-100 rounded-lg border border-blue-200">
           <div className="flex items-center gap-2 text-blue-800 mb-2">
             <Info className="w-4 h-4" />
-            <span className="text-sm font-medium">Present Value Equivalence Method</span>
+            <span className="text-sm font-medium">Payment Schedule Overview</span>
           </div>
           <p className="text-xs text-blue-700">
-            Percentages are calculated based on present value (NPV) to ensure accurate time-adjusted payment allocation.
+            Your payment schedule allocates the total deal value across multiple installments. Percentages are calculated based on present value to ensure accurate time-adjusted allocation.
           </p>
         </div>
 
-        {/* Validation Status and Errors */}
+        {/* Payment Schedule Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Deal Value</div>
+            <div className="text-sm text-gray-600 mb-1">Total Deal Value</div>
             <div className="text-lg font-bold text-blue-700">
               {formatCurrency(totalNPV)}
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              Present Value Basis for %
+              Present value basis
             </div>
           </div>
           
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Total Amount Paid</div>
+            <div className="text-sm text-gray-600 mb-1">Amount Paid</div>
             <div className="text-xl font-bold text-green-700">
               {formatCurrency(totalAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              Future Value: {totalPercentage.toFixed(1)}%
+              Total installments: {totalPercentage.toFixed(1)}%
             </div>
             <div className="text-xs text-blue-600 mt-1">
-              Present Value: {formatCurrency(totalPresentValue)}
+              Present value: {formatCurrency(totalPresentValue)}
             </div>
           </div>
           
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Remaining Deal Value</div>
+            <div className="text-sm text-gray-600 mb-1">Remaining to Allocate</div>
             <div className="text-xl font-bold text-orange-700">
               {formatCurrency(remainingAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {((remainingAmount / totalNPV) * 100).toFixed(1)}% of Deal Value
+              {((remainingAmount / totalNPV) * 100).toFixed(1)}% of deal value
             </div>
           </div>
 
@@ -84,7 +84,7 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
             {isValid && !isIncomplete ? (
               <div className="flex items-center gap-2 text-green-600 mb-2">
                 <CheckCircle className="w-6 h-6" />
-                <span className="font-medium">Valid</span>
+                <span className="font-medium">Complete</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-red-600 mb-2">
@@ -102,12 +102,12 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
           </div>
         </div>
 
-        {/* Error Messages */}
+        {/* Validation Error Messages */}
         {validationErrors.length > 0 && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center gap-2 text-red-700 mb-2">
               <AlertTriangle className="w-4 h-4" />
-              <span className="font-medium">Validation Errors:</span>
+              <span className="font-medium">Payment Schedule Issues:</span>
             </div>
             <ul className="list-disc pl-5 space-y-1">
               {validationErrors.map((error, index) => (
@@ -117,10 +117,11 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
           </div>
         )}
 
+        {/* Payment Schedule Progress */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-gray-700">
-              Payment Schedule Progress (Present Value Basis)
+              Payment Schedule Progress
             </span>
             <span className={`text-sm font-medium ${
               percentageAllocated >= 95 && percentageAllocated <= 105 
@@ -129,7 +130,7 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
                   ? 'text-orange-600' 
                   : 'text-red-600'
             }`}>
-              {percentageAllocated.toFixed(1)}% of Deal Value allocated
+              {percentageAllocated.toFixed(1)}% of deal value allocated
             </span>
           </div>
           <Progress 
@@ -162,14 +163,6 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
               Payment schedule is properly balanced
             </p>
           )}
-          
-          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-            <div className="text-xs text-gray-600">
-              <strong>Debug Info:</strong> Deal Value (PV): {formatCurrency(totalNPV)} | 
-              Total Payments (FV): {formatCurrency(totalAmount)} | 
-              Total PV of Payments: {formatCurrency(totalPresentValue)}
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>

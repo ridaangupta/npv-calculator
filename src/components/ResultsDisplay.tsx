@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, DollarSign, Calculator, BarChart, AlertTriangle } from 'lucide-react';
+import { TrendingUp, DollarSign, Calculator, BarChart, AlertTriangle, Info } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { PaymentSchedule } from '@/types/PaymentSchedule';
 import ValidationAlert from './ValidationAlert';
@@ -30,7 +30,6 @@ interface ResultsDisplayProps {
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   npv,
   totalHectares,
-  discountRate,
   cashFlows,
   baseCashFlow,
   increaseValue,
@@ -44,10 +43,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   
   if (baseCashFlow <= 0) {
     validationIssues.push('Base cash flow must be greater than 0');
-  }
-  
-  if (discountRate <= 0) {
-    validationIssues.push('Discount rate must be greater than 0');
   }
   
   if (totalHectares <= 0) {
@@ -68,7 +63,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <CardHeader className="bg-gradient-to-r from-red-600 to-orange-600 text-white">
             <CardTitle className="flex items-center gap-2">
               <Calculator className="w-5 h-5" />
-              NPV Calculation Results
+              Upfront Lease Valuation
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -101,10 +96,30 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {showNpvWarning && (
         <ValidationAlert
           type="warning"
-          title="Low or Negative NPV"
-          message="The calculated NPV is zero or negative. This may indicate that the cash flows do not justify the investment at the current discount rate. Please review your inputs."
+          title="Low or Negative Deal Value"
+          message="The calculated deal value is zero or negative. This may indicate that the projected cash flows do not justify the investment. Please review your lease terms and projections."
         />
       )}
+
+      {/* Business Context Explanation */}
+      <Card className="shadow-lg border-0 bg-blue-50/80 backdrop-blur-sm border-blue-200">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-2">Understanding Your Upfront Lease Value</h3>
+              <p className="text-sm text-blue-800 mb-3">
+                These calculations show the present value of your projected lease payments - essentially what the future income stream is worth in today's dollars.
+              </p>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• <strong>Deal Value:</strong> The total present value of all future lease payments</li>
+                <li>• <strong>Per Square Meter:</strong> Unit pricing for precise land valuations</li>
+                <li>• <strong>Total Investment:</strong> Complete upfront amount for your {totalHectares} hectare(s)</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       
       {/* Main Results Cards */}
       <div className="grid grid-cols-1 gap-4">
@@ -112,8 +127,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium">Upfront Price per Square Meter</p>
+                <p className="text-green-100 text-sm font-medium">Deal Value per Square Meter</p>
                 <p className="text-3xl font-bold">{formatCurrency(Math.max(0, npvPerSquareMeter))}</p>
+                <p className="text-green-200 text-xs mt-1">Upfront payment per m²</p>
               </div>
               <Calculator className="w-8 h-8 text-green-200" />
             </div>
@@ -124,8 +140,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium">Upfront Price per Hectare (NPV per Hectare)</p>
+                <p className="text-blue-100 text-sm font-medium">Deal Value per Hectare</p>
                 <p className="text-3xl font-bold">{formatCurrency(Math.max(0, npv))}</p>
+                <p className="text-blue-200 text-xs mt-1">Present value of lease payments</p>
               </div>
               <TrendingUp className="w-8 h-8 text-blue-200" />
             </div>
@@ -136,8 +153,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm font-medium">Upfront Price for All Total Hectares ({totalHectares} hectares)</p>
+                <p className="text-purple-100 text-sm font-medium">Total Investment Required</p>
                 <p className="text-3xl font-bold">{formatCurrency(Math.max(0, npv * totalHectares))}</p>
+                <p className="text-purple-200 text-xs mt-1">Complete upfront amount ({totalHectares} hectares)</p>
               </div>
               <DollarSign className="w-8 h-8 text-purple-200" />
             </div>
@@ -145,37 +163,38 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </Card>
       </div>
 
-      {/* Configuration Summary */}
+      {/* Lease Terms Summary */}
       <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-gray-800">
             <BarChart className="w-5 h-5" />
-            Configuration Summary
+            Lease Terms Summary
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-800">{discountRate}%</div>
-              <div className="text-sm text-gray-600">Discount Rate</div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-800">{formatCurrency(baseCashFlow)}</div>
-              <div className="text-sm text-gray-600">Base Cash Flow</div>
+              <div className="text-sm text-gray-600">Starting Annual Payment</div>
+              <div className="text-xs text-gray-500 mt-1">Per square meter</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-800">
-                {increaseType === 'percent' ? `${increaseValue}%` : `${formatCurrency(increaseValue)}/m²`}
+                {increaseType === 'percent' ? `${increaseValue}%` : `${formatCurrency(increaseValue)}`}
               </div>
               <div className="text-sm text-gray-600">
-                {increaseType === 'percent' ? 'Increase Rate' : 'Increase Amount per m²'}
+                {increaseType === 'percent' ? 'Annual Increase Rate' : 'Annual Increase Amount'}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {increaseType === 'percent' ? 'Percentage growth' : 'Per square meter'}
               </div>
             </div>
             <div className="text-center">
-              <Badge variant="secondary" className="text-sm">
+              <Badge variant="secondary" className="text-sm mb-2">
                 {paymentTiming.charAt(0).toUpperCase() + paymentTiming.slice(1)} of Year
               </Badge>
-              <div className="text-sm text-gray-600 mt-1">Payment Timing</div>
+              <div className="text-sm text-gray-600">Payment Timing</div>
+              <div className="text-xs text-gray-500 mt-1">When payments are due</div>
             </div>
           </div>
         </CardContent>
