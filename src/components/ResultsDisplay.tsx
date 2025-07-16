@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, DollarSign, Calculator, BarChart, AlertTriangle, Info } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import { PaymentSchedule } from '@/types/PaymentSchedule';
+
 import ValidationAlert from './ValidationAlert';
 import ExportResults from './ExportResults';
 
@@ -24,8 +24,6 @@ interface ResultsDisplayProps {
   increaseType: 'amount' | 'percent';
   increaseFrequency: number;
   paymentTiming: 'beginning' | 'middle' | 'end';
-  paymentSchedule: PaymentSchedule;
-  onPaymentScheduleChange: (schedule: PaymentSchedule) => void;
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({

@@ -15,10 +15,8 @@ const DesktopLeaseCalculator: React.FC = () => {
     timePeriodInput,
     totalHectaresInput,
     paymentTiming,
-    paymentType,
     cashFlows,
     leaseValue,
-    paymentSchedule,
     numericValues,
     handleDiscountRateChange,
     handleBaseCashFlowChange,
@@ -28,8 +26,6 @@ const DesktopLeaseCalculator: React.FC = () => {
     handleTimePeriodChange,
     handleTotalHectaresChange,
     handlePaymentTimingChange,
-    handlePaymentTypeChange,
-    handlePaymentScheduleChange
   } = useLeaseCalculatorLogic();
 
   return (
@@ -39,9 +35,9 @@ const DesktopLeaseCalculator: React.FC = () => {
         leaseValue={leaseValue}
         totalHectares={numericValues.totalHectares}
         totalInvestment={leaseValue * numericValues.totalHectares}
-        paymentScheduleComplete={paymentSchedule.totalPercentage >= 95}
-        percentageAllocated={paymentSchedule.totalPercentage}
-        paymentCount={paymentSchedule.installments.length}
+        paymentScheduleComplete={true}
+        percentageAllocated={100}
+        paymentCount={1}
       />
       
       <div className="grid md:grid-cols-2 gap-8">
@@ -56,10 +52,9 @@ const DesktopLeaseCalculator: React.FC = () => {
             timePeriodInput={timePeriodInput}
             totalHectaresInput={totalHectaresInput}
             paymentTiming={paymentTiming}
-            paymentType={paymentType}
             cashFlows={cashFlows}
             leaseValue={leaseValue}
-            paymentSchedule={paymentSchedule}
+            totalValue={leaseValue}
             discountRate={numericValues.discountRate}
             onDiscountRateChange={handleDiscountRateChange}
             onBaseCashFlowChange={handleBaseCashFlowChange}
@@ -69,8 +64,6 @@ const DesktopLeaseCalculator: React.FC = () => {
             onTimePeriodChange={handleTimePeriodChange}
             onTotalHectaresChange={handleTotalHectaresChange}
             onPaymentTimingChange={handlePaymentTimingChange}
-            onPaymentTypeChange={handlePaymentTypeChange}
-            onPaymentScheduleChange={handlePaymentScheduleChange}
           />
         </div>
 
@@ -85,8 +78,6 @@ const DesktopLeaseCalculator: React.FC = () => {
           increaseType={increaseType}
           increaseFrequency={increaseFrequency}
           paymentTiming={paymentTiming}
-          paymentSchedule={paymentSchedule}
-          onPaymentScheduleChange={handlePaymentScheduleChange}
         />
       </div>
     </div>

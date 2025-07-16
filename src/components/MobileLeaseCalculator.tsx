@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
 import ExecutiveSummary from './ExecutiveSummary';
-import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
+
 import { useLeaseCalculatorLogic } from '@/hooks/useLeaseCalculatorLogic';
 
 const MobileLeaseCalculator: React.FC = () => {
@@ -17,10 +17,8 @@ const MobileLeaseCalculator: React.FC = () => {
     timePeriodInput,
     totalHectaresInput,
     paymentTiming,
-    paymentType,
     cashFlows,
     leaseValue,
-    paymentSchedule,
     numericValues,
     handleDiscountRateChange,
     handleBaseCashFlowChange,
@@ -30,8 +28,6 @@ const MobileLeaseCalculator: React.FC = () => {
     handleTimePeriodChange,
     handleTotalHectaresChange,
     handlePaymentTimingChange,
-    handlePaymentTypeChange,
-    handlePaymentScheduleChange
   } = useLeaseCalculatorLogic();
 
   return (
@@ -56,10 +52,9 @@ const MobileLeaseCalculator: React.FC = () => {
             timePeriodInput={timePeriodInput}
             totalHectaresInput={totalHectaresInput}
             paymentTiming={paymentTiming}
-            paymentType={paymentType}
             cashFlows={cashFlows}
             leaseValue={leaseValue}
-            paymentSchedule={paymentSchedule}
+            totalValue={leaseValue}
             discountRate={numericValues.discountRate}
             onDiscountRateChange={handleDiscountRateChange}
             onBaseCashFlowChange={handleBaseCashFlowChange}
@@ -69,8 +64,6 @@ const MobileLeaseCalculator: React.FC = () => {
             onTimePeriodChange={handleTimePeriodChange}
             onTotalHectaresChange={handleTotalHectaresChange}
             onPaymentTimingChange={handlePaymentTimingChange}
-            onPaymentTypeChange={handlePaymentTypeChange}
-            onPaymentScheduleChange={handlePaymentScheduleChange}
           />
         </TabsContent>
         
@@ -85,8 +78,6 @@ const MobileLeaseCalculator: React.FC = () => {
             increaseType={increaseType}
             increaseFrequency={increaseFrequency}
             paymentTiming={paymentTiming}
-            paymentSchedule={paymentSchedule}
-            onPaymentScheduleChange={handlePaymentScheduleChange}
           />
         </TabsContent>
       </Tabs>

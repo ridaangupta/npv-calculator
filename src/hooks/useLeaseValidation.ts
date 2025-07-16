@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { LeaseSchedule, ValidationError, ValidationResult } from '@/types/LeaseTypes';
+import { ValidationError, ValidationResult } from '@/types/LeaseTypes';
 
 interface UseLeaseValidationProps {
   discountRateInput: string;
@@ -8,8 +8,6 @@ interface UseLeaseValidationProps {
   increaseType: 'amount' | 'percent';
   timePeriodInput: string;
   totalHectaresInput: string;
-  paymentType: 'normal' | 'custom';
-  leaseSchedule: LeaseSchedule;
   cashFlows: any[];
   leaseValue: number;
 }
@@ -21,8 +19,6 @@ export const useLeaseValidation = ({
   increaseType,
   timePeriodInput,
   totalHectaresInput,
-  paymentType,
-  leaseSchedule,
   cashFlows,
   leaseValue
 }: UseLeaseValidationProps): ValidationResult => {
@@ -31,7 +27,7 @@ export const useLeaseValidation = ({
     const errors: ValidationError[] = [];
     const warnings: ValidationError[] = [];
     let completedFields = 0;
-    const totalFields = paymentType === 'custom' ? 8 : 6;
+    const totalFields = 6;
 
     // Discount Rate Validation
     const discountRate = Number(discountRateInput);
@@ -99,58 +95,6 @@ export const useLeaseValidation = ({
       completedFields++;
     }
 
-    // Custom Payment Schedule Validation
-    if (paymentType === 'custom') {
-      // Payment Schedule Validation
-      if (leaseSchedule.installments.length === 0) {
-        errors.push({ field: 'leaseSchedule', message: 'At least one payment installment is required', type: 'error' });
-      } else {
-        const incompleteInstallments = leaseSchedule.installments.filter(inst => 
-          inst.amountDue <= 0 || inst.percentageOfDeal <= 0 || !inst.paymentDate
-        );
-        
-        if (incompleteInstallments.length > 0) {
-          errors.push({ 
-            field: 'leaseSchedule', 
-            message: `${incompleteInstallments.length} installment(s) have incomplete data`, 
-            type: 'error' 
-          });
-        } else {
-          completedFields++;
-        }
-
-        // Check percentage allocation
-        const totalPercentage = leaseSchedule.installments.reduce((sum, inst) => sum + inst.percentageOfDeal, 0);
-        if (totalPercentage < 95) {
-          warnings.push({ 
-            field: 'leaseSchedule', 
-            message: `Payment schedule is incomplete (${totalPercentage.toFixed(1)}% allocated)`, 
-            type: 'warning' 
-          });
-        } else if (totalPercentage > 100.1) {
-          errors.push({ 
-            field: 'leaseSchedule', 
-            message: 'Total percentage exceeds 100%', 
-            type: 'error' 
-          });
-        } else {
-          completedFields++;
-        }
-
-        // Check for invalid payment dates
-        const invalidDates = leaseSchedule.installments.filter(inst => 
-          inst.paymentDate < leaseSchedule.leaseStartDate
-        );
-        if (invalidDates.length > 0) {
-          errors.push({ 
-            field: 'leaseSchedule', 
-            message: `${invalidDates.length} payment(s) scheduled before lease start date`, 
-            type: 'error' 
-          });
-        }
-      }
-    }
-
     // Lease Value Validation
     if (leaseValue <= 0 && baseCashFlow > 0 && timePeriod > 0) {
       warnings.push({ field: 'leaseValue', message: 'Lease value is zero or negative - review your parameters', type: 'warning' });
@@ -172,8 +116,6 @@ export const useLeaseValidation = ({
     increaseType,
     timePeriodInput,
     totalHectaresInput,
-    paymentType,
-    leaseSchedule,
     cashFlows,
     leaseValue
   ]);

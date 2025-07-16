@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useOptimizedCalculations } from './useOptimizedCalculations';
-import { PaymentSchedule } from '@/types/PaymentSchedule';
 
 interface CashFlow {
   id: string;
@@ -21,16 +20,8 @@ export const useLeaseCalculatorLogic = () => {
   const [timePeriodInput, setTimePeriodInput] = useState<string>('5');
   const [totalHectaresInput, setTotalHectaresInput] = useState<string>('1');
   const [paymentTiming, setPaymentTiming] = useState<'beginning' | 'middle' | 'end'>('end');
-  const [paymentType, setPaymentType] = useState<'normal' | 'custom'>('normal');
   const [cashFlows, setCashFlows] = useState<CashFlow[]>([]);
   const [leaseValue, setLeaseValue] = useState<number>(0);
-  const [paymentSchedule, setPaymentSchedule] = useState<PaymentSchedule>({
-    installments: [],
-    totalPercentage: 0,
-    totalAmount: 0,
-    remainingAmount: 0,
-    leaseStartDate: new Date()
-  });
 
   // Memoized numeric value parsing with early returns for invalid values
   const numericValues = useMemo(() => {
@@ -82,13 +73,6 @@ export const useLeaseCalculatorLogic = () => {
     setPaymentTiming(value);
   }, []);
 
-  const handlePaymentTypeChange = useCallback((value: 'normal' | 'custom') => {
-    setPaymentType(value);
-  }, []);
-
-  const handlePaymentScheduleChange = useCallback((schedule: PaymentSchedule) => {
-    setPaymentSchedule(schedule);
-  }, []);
 
   // Enhanced validation for calculations - prevent invalid calculations
   useEffect(() => {
@@ -102,19 +86,6 @@ export const useLeaseCalculatorLogic = () => {
         return;
       }
 
-      // Additional validation for custom payment schedules
-      if (paymentType === 'custom') {
-        // Check if payment schedule has validation errors
-        const hasIncompleteSchedule = paymentSchedule.installments.length === 0;
-        const hasInvalidSchedule = paymentSchedule.installments.some(inst => 
-          inst.amountDue <= 0 || inst.percentageOfDeal <= 0 || !inst.paymentDate
-        );
-        
-        if (hasIncompleteSchedule || hasInvalidSchedule) {
-          console.warn('Calculation blocked: Payment schedule validation failed');
-          // Still generate cash flows but don't use invalid schedule data
-        }
-      }
 
       // Generate cash flows
       const generatedFlows = generateCashFlowsMemoized(
@@ -137,7 +108,7 @@ export const useLeaseCalculatorLogic = () => {
     }, 100); // Reduced debounce further to 100ms
 
     return () => clearTimeout(timeoutId);
-  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, discountRateInput, paymentTiming, paymentType, paymentSchedule.installments, numericValues, generateCashFlowsMemoized, calculateNPVMemoized]);
+  }, [baseCashFlowInput, increaseValueInput, increaseType, increaseFrequency, timePeriodInput, discountRateInput, paymentTiming, numericValues, generateCashFlowsMemoized, calculateNPVMemoized]);
 
   return {
     // State values
@@ -149,10 +120,8 @@ export const useLeaseCalculatorLogic = () => {
     timePeriodInput,
     totalHectaresInput,
     paymentTiming,
-    paymentType,
     cashFlows,
     leaseValue,
-    paymentSchedule,
     numericValues,
     
     // Handlers
@@ -163,8 +132,6 @@ export const useLeaseCalculatorLogic = () => {
     handleIncreaseFrequencyChange,
     handleTimePeriodChange,
     handleTotalHectaresChange,
-    handlePaymentTimingChange,
-    handlePaymentTypeChange,
-    handlePaymentScheduleChange
+    handlePaymentTimingChange
   };
 };

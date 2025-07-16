@@ -6,9 +6,6 @@ import DiscountRateInput from './DiscountRateInput';
 import CashFlowConfiguration from './CashFlowConfiguration';
 import CashFlowPreview from './CashFlowPreview';
 import HectaresInput from './HectaresInput';
-import PaymentTypeSelector from './PaymentTypeSelector';
-import UpfrontPaymentScheduler from './UpfrontPaymentScheduler';
-
 import ValidationSummary from './ValidationSummary';
 import useFormValidation from '@/hooks/useFormValidation';
 
@@ -16,14 +13,6 @@ interface CashFlow {
   id: string;
   year: number;
   amount: number;
-}
-
-interface PaymentSchedule {
-  installments: any[];
-  totalPercentage: number;
-  totalAmount: number;
-  remainingAmount: number;
-  leaseStartDate: Date;
 }
 
 interface InputSectionProps {
@@ -35,10 +24,9 @@ interface InputSectionProps {
   timePeriodInput: string;
   totalHectaresInput: string;
   paymentTiming: 'beginning' | 'middle' | 'end';
-  paymentType: 'normal' | 'custom';
   cashFlows: CashFlow[];
   leaseValue: number;
-  paymentSchedule: PaymentSchedule;
+  totalValue: number;
   discountRate: number;
   onDiscountRateChange: (value: string) => void;
   onBaseCashFlowChange: (value: string) => void;
@@ -48,8 +36,6 @@ interface InputSectionProps {
   onTimePeriodChange: (value: string) => void;
   onTotalHectaresChange: (value: string) => void;
   onPaymentTimingChange: (value: 'beginning' | 'middle' | 'end') => void;
-  onPaymentTypeChange: (value: 'normal' | 'custom') => void;
-  onPaymentScheduleChange: (schedule: PaymentSchedule) => void;
 }
 
 const InputSection: React.FC<InputSectionProps> = ({
@@ -61,10 +47,9 @@ const InputSection: React.FC<InputSectionProps> = ({
   timePeriodInput,
   totalHectaresInput,
   paymentTiming,
-  paymentType,
   cashFlows,
   leaseValue,
-  paymentSchedule,
+  totalValue,
   discountRate,
   onDiscountRateChange,
   onBaseCashFlowChange,
@@ -73,20 +58,14 @@ const InputSection: React.FC<InputSectionProps> = ({
   onIncreaseFrequencyChange,
   onTimePeriodChange,
   onTotalHectaresChange,
-  onPaymentTimingChange,
-  onPaymentTypeChange,
-  onPaymentScheduleChange
+  onPaymentTimingChange
 }) => {
-  const totalValue = leaseValue * Number(totalHectaresInput || 1);
-  
-  // Track touched fields
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
-  
+
   const handleFieldBlur = (fieldName: string) => {
     setTouchedFields(prev => new Set(prev).add(fieldName));
   };
 
-  // Comprehensive validation
   const validation = useFormValidation({
     discountRateInput,
     baseCashFlowInput,
@@ -94,81 +73,71 @@ const InputSection: React.FC<InputSectionProps> = ({
     increaseType,
     timePeriodInput,
     totalHectaresInput,
-    paymentType,
-    paymentSchedule,
+    paymentTiming,
+    totalValue,
     cashFlows,
     leaseValue,
     touchedFields
   });
 
-  const getCurrentStep = () => {
-    if (validation.errors.find(e => e.field === 'baseCashFlow')) return 'Base Cash Flow';
-    if (validation.errors.find(e => e.field === 'totalHectares')) return 'Property Size';
-    if (validation.errors.find(e => e.field === 'discountRate')) return 'Discount Rate';
-    if (validation.errors.find(e => e.field === 'increaseValue')) return 'Growth Parameters';
-    if (validation.errors.find(e => e.field === 'timePeriod')) return 'Time Period';
-    if (validation.errors.find(e => e.field === 'paymentSchedule')) return 'Payment Schedule';
-    return 'Configuration Complete';
+  const getCurrentStepFromError = (field: string) => {
+    if (field === 'discountRate') return 'Discount Rate';
+    if (field === 'baseCashFlow') return 'Base Cash Flow';
+    if (field === 'increaseValue') return 'Increase Value';
+    if (field === 'timePeriod') return 'Time Period';
+    if (field === 'totalHectares') return 'Total Hectares';
+    if (field === 'paymentTiming') return 'Payment Timing';
+    return 'Unknown';
   };
 
-  const totalSteps = paymentType === 'custom' ? 8 : 6;
-  const completedSteps = Math.floor((validation.completionPercentage / 100) * totalSteps);
+  const totalSteps = 6;
 
   return (
     <div className="space-y-6">
-      {/* Validation Summary */}
-      <ValidationSummary
-        errors={validation.errors}
-        warnings={validation.warnings}
+      <ValidationSummary 
+        validation={validation}
+        totalSteps={totalSteps}
+        getCurrentStepFromError={getCurrentStepFromError}
       />
-
-      {/* Main Input Card */}
+      
       <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
         <CardContent className="p-6 space-y-6">
-          <CurrencyInput />
-
           <DiscountRateInput
-            discountRate={discountRateInput}
-            onDiscountRateChange={onDiscountRateChange}
+            value={discountRateInput}
+            onChange={onDiscountRateChange}
             onBlur={() => handleFieldBlur('discountRate')}
           />
 
-          <CashFlowConfiguration
-            baseCashFlow={baseCashFlowInput}
-            increaseValue={increaseValueInput}
-            increaseType={increaseType}
-            increaseFrequency={increaseFrequency}
-            timePeriod={timePeriodInput}
-            paymentTiming={paymentTiming}
-            onBaseCashFlowChange={onBaseCashFlowChange}
-            onIncreaseValueChange={onIncreaseValueChange}
-            onIncreaseTypeChange={onIncreaseTypeChange}
-            onIncreaseFrequencyChange={onIncreaseFrequencyChange}
-            onTimePeriodChange={onTimePeriodChange}
-            onPaymentTimingChange={onPaymentTimingChange}
+          <CurrencyInput
+            value={baseCashFlowInput}
+            onChange={onBaseCashFlowChange}
+            onBlur={() => handleFieldBlur('baseCashFlow')}
           />
 
-          <CashFlowPreview cashFlows={cashFlows} />
+          <CashFlowConfiguration
+            increaseValueInput={increaseValueInput}
+            onIncreaseValueChange={onIncreaseValueChange}
+            increaseType={increaseType}
+            onIncreaseTypeChange={onIncreaseTypeChange}
+            increaseFrequency={increaseFrequency}
+            onIncreaseFrequencyChange={onIncreaseFrequencyChange}
+            timePeriodInput={timePeriodInput}
+            onTimePeriodChange={onTimePeriodChange}
+            paymentTiming={paymentTiming}
+            onPaymentTimingChange={onPaymentTimingChange}
+            onIncreaseValueBlur={() => handleFieldBlur('increaseValue')}
+            onTimePeriodBlur={() => handleFieldBlur('timePeriod')}
+          />
+
+          <CashFlowPreview
+            cashFlows={cashFlows}
+          />
 
           <HectaresInput
-            totalHectares={totalHectaresInput}
-            onTotalHectaresChange={onTotalHectaresChange}
+            value={totalHectaresInput}
+            onChange={onTotalHectaresChange}
             onBlur={() => handleFieldBlur('totalHectares')}
           />
-
-          <PaymentTypeSelector
-            paymentType={paymentType}
-            onPaymentTypeChange={onPaymentTypeChange}
-          />
-
-          {paymentType === 'custom' && (
-            <UpfrontPaymentScheduler
-              totalValue={totalValue}
-              paymentSchedule={paymentSchedule}
-              onUpdateSchedule={onPaymentScheduleChange}
-              discountRate={discountRate}
-            />
-          )}
         </CardContent>
       </Card>
 
@@ -202,8 +171,8 @@ const arePropsEqual = (prevProps: InputSectionProps, nextProps: InputSectionProp
     prevProps.timePeriodInput === nextProps.timePeriodInput &&
     prevProps.totalHectaresInput === nextProps.totalHectaresInput &&
     prevProps.paymentTiming === nextProps.paymentTiming &&
-    prevProps.paymentType === nextProps.paymentType &&
     prevProps.leaseValue === nextProps.leaseValue &&
+    prevProps.totalValue === nextProps.totalValue &&
     prevProps.discountRate === nextProps.discountRate &&
     prevProps.cashFlows.length === nextProps.cashFlows.length &&
     prevProps.cashFlows.every((flow, index) => 
@@ -211,8 +180,6 @@ const arePropsEqual = (prevProps: InputSectionProps, nextProps: InputSectionProp
       flow.year === nextProps.cashFlows[index]?.year &&
       flow.amount === nextProps.cashFlows[index]?.amount
     ) &&
-    prevProps.paymentSchedule.totalPercentage === nextProps.paymentSchedule.totalPercentage &&
-    prevProps.paymentSchedule.totalAmount === nextProps.paymentSchedule.totalAmount &&
     prevProps.onDiscountRateChange === nextProps.onDiscountRateChange &&
     prevProps.onBaseCashFlowChange === nextProps.onBaseCashFlowChange &&
     prevProps.onIncreaseValueChange === nextProps.onIncreaseValueChange &&
@@ -220,9 +187,7 @@ const arePropsEqual = (prevProps: InputSectionProps, nextProps: InputSectionProp
     prevProps.onIncreaseFrequencyChange === nextProps.onIncreaseFrequencyChange &&
     prevProps.onTimePeriodChange === nextProps.onTimePeriodChange &&
     prevProps.onTotalHectaresChange === nextProps.onTotalHectaresChange &&
-    prevProps.onPaymentTimingChange === nextProps.onPaymentTimingChange &&
-    prevProps.onPaymentTypeChange === nextProps.onPaymentTypeChange &&
-    prevProps.onPaymentScheduleChange === nextProps.onPaymentScheduleChange
+    prevProps.onPaymentTimingChange === nextProps.onPaymentTimingChange
   );
 };
 

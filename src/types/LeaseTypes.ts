@@ -43,7 +43,7 @@ export interface LeaseTerms {
   timePeriod: number;
   discountRate: number;
   paymentTiming: 'beginning' | 'middle' | 'end';
-  paymentType: 'normal' | 'custom';
+  
 }
 
 // Legacy compatibility - keep for gradual migration
