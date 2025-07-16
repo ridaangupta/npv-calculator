@@ -10,7 +10,7 @@ import PaymentTimeDisplay from './PaymentTimeDisplay';
 
 interface PaymentInstallmentCardProps {
   installment: PaymentInstallment;
-  totalNPV: number;
+  totalValue: number;
   onUpdateAmount: (id: string, amount: number) => void;
   onUpdatePercentage: (id: string, percentage: number) => void;
   onUpdateDate: (id: string, date: Date) => void;
@@ -21,7 +21,7 @@ interface PaymentInstallmentCardProps {
 
 const PaymentInstallmentCard: React.FC<PaymentInstallmentCardProps> = memo(({
   installment,
-  totalNPV,
+  totalValue,
   onUpdateAmount,
   onUpdatePercentage,
   onUpdateDate,

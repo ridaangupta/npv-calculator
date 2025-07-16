@@ -5,7 +5,7 @@ import PaymentScheduleListMemo from './PaymentScheduleListMemo';
 
 interface PaymentScheduleListProps {
   installments: PaymentInstallment[];
-  totalNPV: number;
+  totalValue: number;
   onUpdateAmount: (id: string, amount: number) => void;
   onUpdatePercentage: (id: string, percentage: number) => void;
   onUpdateDate: (id: string, date: Date) => void;

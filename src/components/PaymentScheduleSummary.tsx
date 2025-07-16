@@ -7,7 +7,7 @@ import { PaymentSchedule } from '@/types/PaymentSchedule';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface PaymentScheduleSummaryProps {
-  totalNPV: number;
+  totalValue: number;
   paymentSchedule: PaymentSchedule;
   totalAmount: number;
   totalPercentage: number;
@@ -20,7 +20,7 @@ interface PaymentScheduleSummaryProps {
 }
 
 const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
-  totalNPV,
+  totalValue,
   totalAmount,
   totalPercentage,
   remainingAmount,
@@ -50,7 +50,7 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
           <div className="text-center">
             <div className="text-sm text-gray-600 mb-1">Total Deal Value</div>
             <div className="text-lg font-bold text-blue-700">
-              {formatCurrency(totalNPV)}
+              {formatCurrency(totalValue)}
             </div>
             <div className="text-xs text-gray-500 mt-1">
               Present value basis
@@ -76,7 +76,7 @@ const PaymentScheduleSummary: React.FC<PaymentScheduleSummaryProps> = ({
               {formatCurrency(remainingAmount)}
             </div>
             <div className="text-xs text-gray-500">
-              {((remainingAmount / totalNPV) * 100).toFixed(1)}% of deal value
+              {((remainingAmount / totalValue) * 100).toFixed(1)}% of deal value
             </div>
           </div>
 

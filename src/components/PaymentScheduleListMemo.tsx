@@ -4,7 +4,7 @@ import PaymentInstallmentCard from './PaymentInstallmentCard';
 
 interface PaymentScheduleListProps {
   installments: PaymentInstallment[];
-  totalNPV: number;
+  totalValue: number;
   onUpdateAmount: (id: string, amount: number) => void;
   onUpdatePercentage: (id: string, percentage: number) => void;
   onUpdateDate: (id: string, date: Date) => void;
@@ -15,7 +15,7 @@ interface PaymentScheduleListProps {
 
 const PaymentScheduleListMemo: React.FC<PaymentScheduleListProps> = memo(({
   installments,
-  totalNPV,
+  totalValue,
   onUpdateAmount,
   onUpdatePercentage,
   onUpdateDate,
@@ -35,7 +35,7 @@ const PaymentScheduleListMemo: React.FC<PaymentScheduleListProps> = memo(({
         <PaymentInstallmentCard
           key={installment.id}
           installment={installment}
-          totalNPV={totalNPV}
+          totalValue={totalValue}
           onUpdateAmount={onUpdateAmount}
           onUpdatePercentage={onUpdatePercentage}
           onUpdateDate={onUpdateDate}
