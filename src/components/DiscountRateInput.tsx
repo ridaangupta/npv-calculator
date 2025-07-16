@@ -5,23 +5,23 @@ import { Input } from '@/components/ui/input';
 import { AlertCircle } from 'lucide-react';
 
 interface DiscountRateInputProps {
-  discountRate: string;
-  onDiscountRateChange: (value: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   onBlur?: () => void;
 }
 
 const DiscountRateInput: React.FC<DiscountRateInputProps> = ({
-  discountRate,
-  onDiscountRateChange,
+  value,
+  onChange,
   onBlur
 }) => {
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onDiscountRateChange(e.target.value);
-  }, [onDiscountRateChange]);
+    onChange(e.target.value);
+  }, [onChange]);
 
   const validation = useMemo(() => {
-    const rate = Number(discountRate || 0);
-    if (discountRate === '' || discountRate === '0') {
+    const rate = Number(value || 0);
+    if (value === '' || value === '0') {
       return { isValid: false, message: 'Discount rate is required' };
     }
     if (rate < 0) {
@@ -31,7 +31,7 @@ const DiscountRateInput: React.FC<DiscountRateInputProps> = ({
       return { isValid: false, message: 'Discount rate seems unusually high' };
     }
     return { isValid: true, message: '' };
-  }, [discountRate]);
+  }, [value]);
 
   return (
     <div className="space-y-2">
@@ -42,22 +42,22 @@ const DiscountRateInput: React.FC<DiscountRateInputProps> = ({
         <Input
           id="discount-rate"
           type="number"
-          value={discountRate}
+          value={value}
           onChange={handleChange}
           onBlur={onBlur}
           placeholder="Enter discount rate (e.g., 10)"
           step="0.01"
           min="0"
           max="100"
-          className={`text-lg ${!validation.isValid && discountRate !== '' ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+          className={`text-lg ${!validation.isValid && value !== '' ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
         />
-        {!validation.isValid && discountRate !== '' && (
+        {!validation.isValid && value !== '' && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             <AlertCircle className="w-4 h-4 text-red-500" />
           </div>
         )}
       </div>
-      {!validation.isValid && discountRate !== '' && (
+      {!validation.isValid && value !== '' && (
         <p className="text-xs text-red-600 flex items-center gap-1">
           <AlertCircle className="w-3 h-3" />
           {validation.message}

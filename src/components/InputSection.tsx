@@ -75,7 +75,7 @@ const InputSection: React.FC<InputSectionProps> = ({
     totalHectaresInput,
     paymentTiming,
     totalValue,
-    cashFlows,
+    cashFlows: cashFlows || [],
     leaseValue,
     touchedFields
   });
@@ -115,13 +115,13 @@ const InputSection: React.FC<InputSectionProps> = ({
           />
 
           <CashFlowConfiguration
-            increaseValueInput={increaseValueInput}
+            increaseValue={increaseValueInput}
             onIncreaseValueChange={onIncreaseValueChange}
             increaseType={increaseType}
             onIncreaseTypeChange={onIncreaseTypeChange}
             increaseFrequency={increaseFrequency}
             onIncreaseFrequencyChange={onIncreaseFrequencyChange}
-            timePeriodInput={timePeriodInput}
+            timePeriod={timePeriodInput}
             onTimePeriodChange={onTimePeriodChange}
             paymentTiming={paymentTiming}
             onPaymentTimingChange={onPaymentTimingChange}

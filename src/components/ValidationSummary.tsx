@@ -1,24 +1,24 @@
+
 import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, XCircle, CheckCircle } from 'lucide-react';
-
-interface ValidationError {
-  field: string;
-  message: string;
-  type: 'error' | 'warning';
-}
+import { ValidationResult } from '@/types/LeaseTypes';
 
 interface ValidationSummaryProps {
-  errors: ValidationError[];
-  warnings: ValidationError[];
+  validation: ValidationResult;
+  totalSteps: number;
+  getCurrentStepFromError: (field: string) => string;
   className?: string;
 }
 
 const ValidationSummary: React.FC<ValidationSummaryProps> = ({
-  errors,
-  warnings,
+  validation,
+  totalSteps,
+  getCurrentStepFromError,
   className = ''
 }) => {
+  const { errors = [], warnings = [], isValid, completionPercentage } = validation;
+
   if (errors.length === 0 && warnings.length === 0) {
     return (
       <Alert className={`border-green-200 bg-green-50 text-green-800 ${className}`}>
@@ -44,7 +44,7 @@ const ValidationSummary: React.FC<ValidationSummaryProps> = ({
               <ul className="list-disc list-inside space-y-1">
                 {errors.map((error, index) => (
                   <li key={index} className="text-sm">
-                    <strong>{error.field}:</strong> {error.message}
+                    <strong>{getCurrentStepFromError(error.field)}:</strong> {error.message}
                   </li>
                 ))}
               </ul>
@@ -65,7 +65,7 @@ const ValidationSummary: React.FC<ValidationSummaryProps> = ({
               <ul className="list-disc list-inside space-y-1">
                 {warnings.map((warning, index) => (
                   <li key={index} className="text-sm">
-                    <strong>{warning.field}:</strong> {warning.message}
+                    <strong>{getCurrentStepFromError(warning.field)}:</strong> {warning.message}
                   </li>
                 ))}
               </ul>

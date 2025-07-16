@@ -6,25 +6,25 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { AlertCircle } from 'lucide-react';
 
 interface HectaresInputProps {
-  totalHectares: string;
-  onTotalHectaresChange: (value: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   onBlur?: () => void;
 }
 
 const HectaresInput: React.FC<HectaresInputProps> = ({
-  totalHectares,
-  onTotalHectaresChange,
+  value,
+  onChange,
   onBlur
 }) => {
   const { selectedCurrency } = useCurrency();
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onTotalHectaresChange(e.target.value);
-  }, [onTotalHectaresChange]);
+    onChange(e.target.value);
+  }, [onChange]);
 
   const validation = useMemo(() => {
-    const hectares = Number(totalHectares || 0);
-    if (totalHectares === '') {
+    const hectares = Number(value || 0);
+    if (value === '') {
       return { isValid: false, message: 'Total hectares is required' };
     }
     if (hectares <= 0) {
@@ -34,7 +34,7 @@ const HectaresInput: React.FC<HectaresInputProps> = ({
       return { isValid: false, message: 'Total hectares seems unusually large' };
     }
     return { isValid: true, message: '' };
-  }, [totalHectares]);
+  }, [value]);
 
   return (
     <div className="space-y-2 pt-4 border-t border-gray-200">
@@ -45,21 +45,21 @@ const HectaresInput: React.FC<HectaresInputProps> = ({
         <Input
           id="total-hectares"
           type="number"
-          value={totalHectares}
+          value={value}
           onChange={handleChange}
           onBlur={onBlur}
           placeholder="Enter total hectares (e.g., 100)"
           min="0.1"
           step="0.1"
-          className={`text-lg ${!validation.isValid && totalHectares !== '' ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+          className={`text-lg ${!validation.isValid && value !== '' ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
         />
-        {!validation.isValid && totalHectares !== '' && (
+        {!validation.isValid && value !== '' && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             <AlertCircle className="w-4 h-4 text-red-500" />
           </div>
         )}
       </div>
-      {!validation.isValid && totalHectares !== '' && (
+      {!validation.isValid && value !== '' && (
         <p className="text-xs text-red-600 flex items-center gap-1">
           <AlertCircle className="w-3 h-3" />
           {validation.message}
