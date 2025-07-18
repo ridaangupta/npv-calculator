@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import InputSection from './InputSection';
 import ResultsDisplay from './ResultsDisplay';
 import ExecutiveSummary from './ExecutiveSummary';
+import PaymentMethodSelector from './PaymentMethodSelector';
+import { CustomPaymentScheduleCalculator } from './CustomPaymentScheduleCalculator';
 import { useLeaseCalculatorLogic } from '@/hooks/useLeaseCalculatorLogic';
 
 const DesktopLeaseCalculator: React.FC = () => {
@@ -27,6 +29,11 @@ const DesktopLeaseCalculator: React.FC = () => {
     handleTotalHectaresChange,
     handlePaymentTimingChange,
   } = useLeaseCalculatorLogic();
+
+  const [paymentMethod, setPaymentMethod] = useState<'standard' | 'custom'>('standard');
+
+  const totalInvestment = leaseValue * numericValues.totalHectares;
+  const hasValidCalculation = leaseValue > 0 && numericValues.totalHectares > 0;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -80,6 +87,28 @@ const DesktopLeaseCalculator: React.FC = () => {
           paymentTiming={paymentTiming}
         />
       </div>
+
+      {/* Payment Method Selection - Only show if calculation is valid */}
+      {hasValidCalculation && (
+        <PaymentMethodSelector
+          selectedMethod={paymentMethod}
+          onMethodChange={setPaymentMethod}
+          leaseValue={leaseValue}
+          totalHectares={numericValues.totalHectares}
+        />
+      )}
+
+      {/* Custom Payment Schedule - Only show if custom method is selected */}
+      {hasValidCalculation && paymentMethod === 'custom' && (
+        <CustomPaymentScheduleCalculator
+          dealValue={totalInvestment}
+          discountRate={numericValues.discountRate}
+          leaseStartDate={new Date()}
+          showComparison={true}
+          standardLeaseValue={leaseValue}
+          standardTotalHectares={numericValues.totalHectares}
+        />
+      )}
     </div>
   );
 };

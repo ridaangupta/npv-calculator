@@ -12,12 +12,28 @@ import { useInstallmentManager } from "@/hooks/useInstallmentManager";
 import { useCustomScheduleCalculations } from "@/hooks/useCustomScheduleCalculations";
 import { CustomScheduleInputs } from "@/types/CustomScheduleTypes";
 
-export const CustomPaymentScheduleCalculator = () => {
+interface CustomPaymentScheduleCalculatorProps {
+  dealValue?: number;
+  discountRate?: number;
+  leaseStartDate?: Date;
+  showComparison?: boolean;
+  standardLeaseValue?: number;
+  standardTotalHectares?: number;
+}
+
+export const CustomPaymentScheduleCalculator = ({
+  dealValue: initialDealValue,
+  discountRate: initialDiscountRate,
+  leaseStartDate: initialLeaseStartDate,
+  showComparison = false,
+  standardLeaseValue = 0,
+  standardTotalHectares = 0
+}: CustomPaymentScheduleCalculatorProps = {}) => {
   const [inputs, setInputs] = useState<CustomScheduleInputs>({
-    leaseStartDate: undefined,
+    leaseStartDate: initialLeaseStartDate || undefined,
     numberOfInstallments: 3,
-    discountRate: 10,
-    dealValue: 1000000
+    discountRate: initialDiscountRate || 10,
+    dealValue: initialDealValue || 1000000
   });
 
   const {
@@ -45,13 +61,24 @@ export const CustomPaymentScheduleCalculator = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Custom Lease Payment Schedule Calculator</h1>
-        <p className="text-muted-foreground mt-2">
-          Create a custom payment schedule and calculate the Net Present Value
-        </p>
-      </div>
+    <div className="max-w-6xl mx-auto space-y-6">
+      {!showComparison && (
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Custom Lease Payment Schedule Calculator</h1>
+          <p className="text-muted-foreground mt-2">
+            Create a custom payment schedule and calculate the Net Present Value
+          </p>
+        </div>
+      )}
+      
+      {showComparison && (
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Custom Payment Schedule</h2>
+          <p className="text-gray-600">
+            Create a custom payment schedule for your calculated lease value
+          </p>
+        </div>
+      )}
 
       {/* Basic Inputs */}
       <Card>
@@ -187,6 +214,43 @@ export const CustomPaymentScheduleCalculator = () => {
         installments={calculatedInstallments}
         totalNPV={totalNPV}
       />
+
+      {/* Comparison with Standard Calculation */}
+      {showComparison && standardLeaseValue > 0 && (
+        <Card className="shadow-lg border-0 bg-blue-50/80 backdrop-blur-sm border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              <div className="w-5 h-5 bg-blue-600 rounded" />
+              Standard vs Custom Schedule Comparison
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-800">
+                  ${(standardLeaseValue * standardTotalHectares).toLocaleString()}
+                </div>
+                <div className="text-sm text-blue-600">Standard Calculation</div>
+                <div className="text-xs text-blue-500 mt-1">Annual payment structure</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-800">
+                  ${inputs.dealValue.toLocaleString()}
+                </div>
+                <div className="text-sm text-blue-600">Custom Schedule</div>
+                <div className="text-xs text-blue-500 mt-1">Custom installment plan</div>
+              </div>
+            </div>
+            {Math.abs(totalNPV - inputs.dealValue) > 0.01 && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                <div className="text-sm text-yellow-800">
+                  <strong>Note:</strong> Custom schedule NPV (${totalNPV.toLocaleString()}) should equal deal value (${inputs.dealValue.toLocaleString()}) for equivalent value.
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
