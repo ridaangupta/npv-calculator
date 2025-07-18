@@ -1,6 +1,3 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Calculator, Calendar } from "lucide-react";
 import UpfrontLeaseCalculator from "@/components/UpfrontLeaseCalculator";
 
 const Index = () => {
@@ -12,19 +9,6 @@ const Index = () => {
             Strategic investment analysis for lease valuations. Calculate upfront lease amounts with 
             customizable payment schedules and make informed executive decisions with precision.
           </p>
-          
-          <div className="flex justify-center gap-4 mt-8">
-            <Button size="lg" className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              Standard Calculator
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link to="/custom-schedule" className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Custom Schedule
-              </Link>
-            </Button>
-          </div>
         </div>
         
         <UpfrontLeaseCalculator />
