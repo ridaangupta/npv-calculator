@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, BarChart3, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -83,9 +83,9 @@ export const CustomPaymentScheduleCalculator = ({
       {/* Basic Inputs */}
       <Card>
         <CardHeader>
-          <CardTitle>Basic Configuration</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Configuration</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <div>
             <Label htmlFor="leaseStartDate">Lease Start Date</Label>
             <NativeDatePicker
@@ -155,31 +155,36 @@ export const CustomPaymentScheduleCalculator = ({
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Payment Installments</CardTitle>
-            <div className="flex gap-2">
+            <CardTitle className="text-lg md:text-xl">Payment Installments</CardTitle>
+            <div className="flex gap-1">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={distributePercentagesEvenly}
                 disabled={installments.length === 0}
+                className="p-2 md:px-3"
+                title="Distribute Evenly"
               >
-                Distribute Evenly
+                <BarChart3 className="h-4 w-4" />
+                <span className="sr-only">Distribute Evenly</span>
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={addInstallment}
+                className="p-2 md:px-3"
+                title="Add Installment"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Installment
+                <Plus className="h-4 w-4" />
+                <span className="sr-only">Add Installment</span>
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {/* Header */}
-            <div className="grid grid-cols-12 gap-4 items-center p-4 bg-muted rounded-lg text-sm font-medium">
+          <div className="space-y-3">
+            {/* Header - Hidden on mobile, shown on desktop */}
+            <div className="hidden md:grid grid-cols-12 gap-4 items-center p-3 bg-muted rounded-lg text-sm font-medium">
               <div className="col-span-1">#</div>
               <div className="col-span-5">Payment Date</div>
               <div className="col-span-3">Percentage</div>
@@ -201,8 +206,8 @@ export const CustomPaymentScheduleCalculator = ({
             ))}
             
             {installments.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No installments configured. Click "Add Installment" to get started.
+              <div className="text-center py-6 text-muted-foreground text-sm">
+                No installments configured. Tap + to add.
               </div>
             )}
           </div>
