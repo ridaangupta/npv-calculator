@@ -72,20 +72,6 @@ const MobileLeaseCalculator: React.FC = () => {
             onTotalHectaresChange={handleTotalHectaresChange}
             onPaymentTimingChange={handlePaymentTimingChange}
           />
-        </TabsContent>
-        
-        <TabsContent value="results" className="space-y-6">
-          <ResultsDisplay
-            leaseValue={leaseValue}
-            totalHectares={numericValues.totalHectares}
-            discountRate={numericValues.discountRate}
-            cashFlows={cashFlows}
-            baseCashFlow={numericValues.baseCashFlow}
-            increaseValue={numericValues.increaseValue}
-            increaseType={increaseType}
-            increaseFrequency={increaseFrequency}
-            paymentTiming={paymentTiming}
-          />
           
           {/* Payment Method Selection - Only show if calculation is valid */}
           {hasValidCalculation && (
@@ -108,6 +94,20 @@ const MobileLeaseCalculator: React.FC = () => {
               standardTotalHectares={numericValues.totalHectares}
             />
           )}
+        </TabsContent>
+        
+        <TabsContent value="results" className="space-y-6">
+          <ResultsDisplay
+            leaseValue={leaseValue}
+            totalHectares={numericValues.totalHectares}
+            discountRate={numericValues.discountRate}
+            cashFlows={cashFlows}
+            baseCashFlow={numericValues.baseCashFlow}
+            increaseValue={numericValues.increaseValue}
+            increaseType={increaseType}
+            increaseFrequency={increaseFrequency}
+            paymentTiming={paymentTiming}
+          />
         </TabsContent>
       </Tabs>
     </div>
