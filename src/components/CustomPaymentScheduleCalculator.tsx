@@ -100,21 +100,19 @@ export const CustomPaymentScheduleCalculator = ({
             <Label htmlFor="numberOfInstallments">Number of Installments</Label>
             <Input
               id="numberOfInstallments"
-              type="number"
-              value={inputs.numberOfInstallments}
+              type="text"
+              value={inputs.numberOfInstallments === 0 ? '' : inputs.numberOfInstallments.toString()}
               onChange={(e) => {
                 const value = e.target.value;
                 if (value === '') {
                   handleInputChange('numberOfInstallments', 0);
                 } else {
                   const numValue = parseInt(value);
-                  if (!isNaN(numValue)) {
-                    handleInputChange('numberOfInstallments', Math.max(0, numValue));
+                  if (!isNaN(numValue) && numValue >= 0) {
+                    handleInputChange('numberOfInstallments', Math.min(20, numValue));
                   }
                 }
               }}
-              min="0"
-              max="20"
               className="mt-2"
               placeholder="Enter number of installments"
             />
