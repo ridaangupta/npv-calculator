@@ -40,7 +40,25 @@ export const calculateDaysToPayment = (startDate: Date, paymentDate: Date): numb
   return differenceInDays(paymentDate, startDate);
 };
 
-// New function for Present Value Equivalence Method
+// New function to calculate future payment amount from present value contribution
+export const calculateFuturePaymentAmount = (
+  presentValueContribution: number,
+  leaseStartDate: Date,
+  paymentDate: Date,
+  discountRate: number
+): number => {
+  const days = differenceInDays(paymentDate, leaseStartDate);
+  
+  if (days <= 0) {
+    return presentValueContribution;
+  }
+  
+  const years = days / 365.25;
+  const futureAmount = presentValueContribution * Math.pow(1 + discountRate / 100, years);
+  return futureAmount;
+};
+
+// Present Value Equivalence Method functions
 export const calculatePresentValuePortion = (
   percentage: number,
   totalNPV: number
@@ -55,25 +73,7 @@ export const calculatePercentageFromPresentValue = (
   return totalNPV > 0 ? (presentValue / totalNPV) * 100 : 0;
 };
 
-// Custom Schedule Calculations
-export const calculateCustomInstallmentPresentValue = (
-  dealValue: number,
-  percentage: number,
-  leaseStartDate: Date,
-  paymentDate: Date,
-  discountRate: number
-): number => {
-  const amount = dealValue * (percentage / 100);
-  const days = differenceInDays(paymentDate, leaseStartDate);
-  
-  if (days <= 0) {
-    return amount;
-  }
-  
-  const discountFactor = Math.pow(1 + discountRate / 100 / 365, days);
-  return amount / discountFactor;
-};
-
+// Updated Custom Schedule Calculations - treating dealValue as target NPV
 export const calculateCustomScheduleInstallments = (
   dealValue: number,
   leaseStartDate: Date,
@@ -81,15 +81,18 @@ export const calculateCustomScheduleInstallments = (
   installments: Array<{ id: string; paymentDate: Date; percentage: number }>
 ): CustomLeaseInstallment[] => {
   return installments.map(installment => {
-    const amount = dealValue * (installment.percentage / 100);
-    const daysFromStart = differenceInDays(installment.paymentDate, leaseStartDate);
-    const presentValue = calculateCustomInstallmentPresentValue(
-      dealValue,
-      installment.percentage,
+    // Present value contribution = dealValue * percentage
+    const presentValue = dealValue * (installment.percentage / 100);
+    
+    // Future payment amount = present value compounded to payment date
+    const amount = calculateFuturePaymentAmount(
+      presentValue,
       leaseStartDate,
       installment.paymentDate,
       discountRate
     );
+    
+    const daysFromStart = differenceInDays(installment.paymentDate, leaseStartDate);
     
     return {
       id: installment.id,

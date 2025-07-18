@@ -1,3 +1,4 @@
+
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,9 +8,10 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 interface ScheduleSummaryTableProps {
   installments: CustomLeaseInstallment[];
   totalNPV: number;
+  targetNPV?: number;
 }
 
-export const ScheduleSummaryTable = ({ installments, totalNPV }: ScheduleSummaryTableProps) => {
+export const ScheduleSummaryTable = ({ installments, totalNPV, targetNPV }: ScheduleSummaryTableProps) => {
   const { formatCurrency } = useCurrency();
 
   if (installments.length === 0) {
@@ -25,6 +27,9 @@ export const ScheduleSummaryTable = ({ installments, totalNPV }: ScheduleSummary
     );
   }
 
+  const npvDifference = targetNPV ? Math.abs(totalNPV - targetNPV) : 0;
+  const isNPVMatching = targetNPV ? npvDifference < (targetNPV * 0.0001) : true;
+
   return (
     <Card>
       <CardHeader>
@@ -35,9 +40,9 @@ export const ScheduleSummaryTable = ({ installments, totalNPV }: ScheduleSummary
           <TableHeader>
             <TableRow>
               <TableHead>Payment Date</TableHead>
-              <TableHead>Percentage</TableHead>
+              <TableHead>NPV %</TableHead>
               <TableHead>Days from Start</TableHead>
-              <TableHead>Amount</TableHead>
+              <TableHead>Future Payment</TableHead>
               <TableHead>Present Value</TableHead>
             </TableRow>
           </TableHeader>
@@ -64,12 +69,34 @@ export const ScheduleSummaryTable = ({ installments, totalNPV }: ScheduleSummary
           </TableBody>
         </Table>
         
-        <div className="mt-4 p-4 bg-muted rounded-lg">
-          <div className="flex justify-between items-center">
-            <span className="text-lg font-semibold">Total Net Present Value (NPV):</span>
-            <span className="text-lg font-bold text-primary">
-              {formatCurrency(totalNPV)}
-            </span>
+        <div className="mt-4 space-y-2">
+          <div className={`p-4 rounded-lg ${isNPVMatching ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-semibold">Calculated Net Present Value:</span>
+              <span className="text-lg font-bold text-primary">
+                {formatCurrency(totalNPV)}
+              </span>
+            </div>
+            
+            {targetNPV && (
+              <div className="mt-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Target NPV:</span>
+                  <span>{formatCurrency(targetNPV)}</span>
+                </div>
+                {!isNPVMatching && (
+                  <div className="flex justify-between text-yellow-700">
+                    <span>Difference:</span>
+                    <span>{formatCurrency(npvDifference)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
+            <strong>Note:</strong> Future Payment amounts are calculated to achieve the specified present value contributions. 
+            The sum of all present values equals your target NPV.
           </div>
         </div>
       </CardContent>

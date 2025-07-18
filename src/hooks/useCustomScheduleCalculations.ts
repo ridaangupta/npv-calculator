@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { CustomLeaseInstallment, CustomScheduleValidation } from '@/types/CustomScheduleTypes';
 import { 
@@ -63,6 +64,16 @@ export const useCustomScheduleCalculations = (
     if (hasInvalidPercentages) {
       errors.push('All percentages must be between 0 and 100');
     }
+
+    // Validate that NPV equals deal value (within tolerance)
+    if (calculatedInstallments.length > 0 && percentageSum === 100) {
+      const npvDifference = Math.abs(totalNPV - dealValue);
+      const tolerance = dealValue * 0.0001; // 0.01% tolerance
+      
+      if (npvDifference > tolerance) {
+        errors.push(`NPV calculation error: Expected ${dealValue.toLocaleString()}, got ${totalNPV.toLocaleString()}`);
+      }
+    }
     
     return {
       isValid: errors.length === 0,
@@ -70,7 +81,7 @@ export const useCustomScheduleCalculations = (
       percentageSum,
       hasInvalidDates
     };
-  }, [leaseStartDate, dealValue, installments]);
+  }, [leaseStartDate, dealValue, installments, calculatedInstallments, totalNPV]);
 
   return {
     calculatedInstallments,

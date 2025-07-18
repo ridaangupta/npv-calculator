@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus, BarChart3, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export const CustomPaymentScheduleCalculator = ({
         <div className="text-center">
           <h1 className="text-3xl font-bold">Custom Lease Payment Schedule Calculator</h1>
           <p className="text-muted-foreground mt-2">
-            Create a custom payment schedule and calculate the Net Present Value
+            Create a custom payment schedule to achieve your target Net Present Value
           </p>
         </div>
       )}
@@ -141,7 +142,7 @@ export const CustomPaymentScheduleCalculator = ({
           </div>
           
           <div>
-            <Label htmlFor="dealValue">Deal Value</Label>
+            <Label htmlFor="dealValue">Target NPV (Deal Value)</Label>
             <Input
               id="dealValue"
               type="text"
@@ -158,8 +159,11 @@ export const CustomPaymentScheduleCalculator = ({
                 }
               }}
               className="mt-2"
-              placeholder="Enter deal value"
+              placeholder="Enter target present value"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              The present value target for all payments
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -213,7 +217,7 @@ export const CustomPaymentScheduleCalculator = ({
             <div className="hidden md:grid grid-cols-12 gap-4 items-center p-3 bg-muted rounded-lg text-sm font-medium">
               <div className="col-span-1">#</div>
               <div className="col-span-5">Payment Date</div>
-              <div className="col-span-3">Percentage</div>
+              <div className="col-span-3">NPV Percentage</div>
               <div className="col-span-2">Display %</div>
               <div className="col-span-1">Actions</div>
             </div>
@@ -244,6 +248,7 @@ export const CustomPaymentScheduleCalculator = ({
       <ScheduleSummaryTable 
         installments={calculatedInstallments}
         totalNPV={totalNPV}
+        targetNPV={inputs.dealValue}
       />
 
       {/* Comparison with Standard Calculation */}
@@ -268,17 +273,18 @@ export const CustomPaymentScheduleCalculator = ({
                 <div className="text-2xl font-bold text-blue-800">
                   ${inputs.dealValue.toLocaleString()}
                 </div>
-                <div className="text-sm text-blue-600">Custom Schedule</div>
-                <div className="text-xs text-blue-500 mt-1">Custom installment plan</div>
+                <div className="text-sm text-blue-600">Custom Schedule Target NPV</div>
+                <div className="text-xs text-blue-500 mt-1">Present value of custom payments</div>
               </div>
             </div>
-            {Math.abs(totalNPV - inputs.dealValue) > 0.01 && (
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                <div className="text-sm text-yellow-800">
-                  <strong>Note:</strong> Custom schedule NPV (${totalNPV.toLocaleString()}) should equal deal value (${inputs.dealValue.toLocaleString()}) for equivalent value.
-                </div>
+            <div className="mt-4 p-3 bg-blue-100 border border-blue-200 rounded">
+              <div className="text-sm text-blue-800">
+                <strong>Calculated NPV:</strong> ${totalNPV.toLocaleString()} 
+                {Math.abs(totalNPV - inputs.dealValue) > 0.01 && (
+                  <span className="text-yellow-700"> (Difference: ${Math.abs(totalNPV - inputs.dealValue).toLocaleString()})</span>
+                )}
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       )}
