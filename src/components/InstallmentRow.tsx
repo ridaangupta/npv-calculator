@@ -59,13 +59,20 @@ export const InstallmentRow = ({
             <div>
               <label className="text-sm font-medium text-muted-foreground">Percentage</label>
               <Input
-                type="number"
-                value={installment.percentage}
-                onChange={(e) => onUpdate(installment.id, { percentage: parseFloat(e.target.value) || 0 })}
+                type="text"
+                value={installment.percentage === 0 ? '' : installment.percentage.toString()}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    onUpdate(installment.id, { percentage: 0 });
+                  } else {
+                    const numValue = parseFloat(value);
+                    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                      onUpdate(installment.id, { percentage: numValue });
+                    }
+                  }
+                }}
                 placeholder="0.00"
-                min="0"
-                max="100"
-                step="0.01"
                 className="mt-1"
               />
             </div>
@@ -96,13 +103,20 @@ export const InstallmentRow = ({
         
         <div className="col-span-3">
           <Input
-            type="number"
-            value={installment.percentage}
-            onChange={(e) => onUpdate(installment.id, { percentage: parseFloat(e.target.value) || 0 })}
+            type="text"
+            value={installment.percentage === 0 ? '' : installment.percentage.toString()}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '') {
+                onUpdate(installment.id, { percentage: 0 });
+              } else {
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                  onUpdate(installment.id, { percentage: numValue });
+                }
+              }
+            }}
             placeholder="Percentage"
-            min="0"
-            max="100"
-            step="0.01"
           />
         </div>
         

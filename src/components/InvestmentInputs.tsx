@@ -33,9 +33,19 @@ const InvestmentInputs: React.FC<InvestmentInputsProps> = ({
           </Label>
           <Input
             id="initial-investment"
-            type="number"
-            value={initialInvestment || ''}
-            onChange={(e) => onInitialInvestmentChange(Number(e.target.value) || 0)}
+            type="text"
+            value={initialInvestment === 0 ? '' : initialInvestment.toString()}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '') {
+                onInitialInvestmentChange(0);
+              } else {
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue) && numValue >= 0) {
+                  onInitialInvestmentChange(numValue);
+                }
+              }
+            }}
             placeholder="Enter initial investment"
             className="text-lg"
           />
@@ -47,11 +57,20 @@ const InvestmentInputs: React.FC<InvestmentInputsProps> = ({
           </Label>
           <Input
             id="discount-rate"
-            type="number"
-            value={discountRate || ''}
-            onChange={(e) => onDiscountRateChange(Number(e.target.value) || 0)}
+            type="text"
+            value={discountRate === 0 ? '' : discountRate.toString()}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '') {
+                onDiscountRateChange(0);
+              } else {
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                  onDiscountRateChange(numValue);
+                }
+              }
+            }}
             placeholder="Enter discount rate"
-            step="0.1"
             className="text-lg"
           />
         </div>

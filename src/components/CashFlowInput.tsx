@@ -34,9 +34,19 @@ const CashFlowInput: React.FC<CashFlowInputProps> = ({
             $
           </span>
           <Input
-            type="number"
-            value={cashFlow.amount || ''}
-            onChange={(e) => onUpdate(cashFlow.id, Number(e.target.value) || 0)}
+            type="text"
+            value={cashFlow.amount === 0 ? '' : cashFlow.amount.toString()}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '') {
+                onUpdate(cashFlow.id, 0);
+              } else {
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue) && numValue >= 0) {
+                  onUpdate(cashFlow.id, numValue);
+                }
+              }
+            }}
             placeholder="0"
             className="pl-8 text-right"
           />

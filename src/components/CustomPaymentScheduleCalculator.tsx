@@ -122,13 +122,21 @@ export const CustomPaymentScheduleCalculator = ({
             <Label htmlFor="discountRate">Discount Rate (%)</Label>
             <Input
               id="discountRate"
-              type="number"
-              value={inputs.discountRate}
-              onChange={(e) => handleInputChange('discountRate', parseFloat(e.target.value) || 0)}
-              min="0"
-              max="100"
-              step="0.01"
+              type="text"
+              value={inputs.discountRate === 0 ? '' : inputs.discountRate.toString()}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  handleInputChange('discountRate', 0);
+                } else {
+                  const numValue = parseFloat(value);
+                  if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                    handleInputChange('discountRate', numValue);
+                  }
+                }
+              }}
               className="mt-2"
+              placeholder="Enter discount rate"
             />
           </div>
           
@@ -136,12 +144,21 @@ export const CustomPaymentScheduleCalculator = ({
             <Label htmlFor="dealValue">Deal Value</Label>
             <Input
               id="dealValue"
-              type="number"
-              value={inputs.dealValue}
-              onChange={(e) => handleInputChange('dealValue', parseFloat(e.target.value) || 0)}
-              min="0"
-              step="0.01"
+              type="text"
+              value={inputs.dealValue === 0 ? '' : inputs.dealValue.toString()}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  handleInputChange('dealValue', 0);
+                } else {
+                  const numValue = parseFloat(value);
+                  if (!isNaN(numValue) && numValue >= 0) {
+                    handleInputChange('dealValue', numValue);
+                  }
+                }
+              }}
               className="mt-2"
+              placeholder="Enter deal value"
             />
           </div>
         </CardContent>
