@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CustomScheduleDatePicker } from "./CustomScheduleDatePicker";
+import { NativeDatePicker } from "./NativeDatePicker";
 import { InstallmentRow } from "./InstallmentRow";
 import { ScheduleSummaryTable } from "./ScheduleSummaryTable";
 import { useInstallmentManager } from "@/hooks/useInstallmentManager";
@@ -88,7 +88,7 @@ export const CustomPaymentScheduleCalculator = ({
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <Label htmlFor="leaseStartDate">Lease Start Date</Label>
-            <CustomScheduleDatePicker
+            <NativeDatePicker
               date={inputs.leaseStartDate}
               onDateChange={(date) => handleInputChange('leaseStartDate', date)}
               placeholder="Select start date"

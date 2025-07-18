@@ -1,7 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CustomScheduleDatePicker } from "./CustomScheduleDatePicker";
+import { NativeDatePicker } from "./NativeDatePicker";
 import { InstallmentInput } from "@/hooks/useInstallmentManager";
 
 interface InstallmentRowProps {
@@ -28,7 +28,7 @@ export const InstallmentRow = ({
       </div>
       
       <div className="col-span-5">
-        <CustomScheduleDatePicker
+        <NativeDatePicker
           date={installment.paymentDate}
           onDateChange={(date) => date && onUpdate(installment.id, { paymentDate: date })}
           minDate={leaseStartDate}
